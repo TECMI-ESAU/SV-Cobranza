@@ -15,3 +15,7 @@ Thumbs.db
 # Datos locales de la aplicacion
 *.mv.db
 *.trace.db
+
+# Clave de cifrado local
+clave.key
+*.key
