@@ -1,0 +1,17 @@
+﻿# Maven
+target/
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+nbproject/private/
+# Sistema
+*.log
+.DS_Store
+Thumbs.db
+# Datos locales de la aplicacion
+*.mv.db
+*.trace.db
