@@ -19,3 +19,4 @@ Thumbs.db
 # Clave de cifrado local
 clave.key
 *.key
+dist/
