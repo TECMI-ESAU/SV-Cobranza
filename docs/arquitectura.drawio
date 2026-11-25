@@ -1,168 +1,152 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <mxfile host="app.diagrams.net">
-  <diagram id="arquitectura-sv-cobranza" name="Arquitectura">
-    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" page="0">
+  <diagram id="yAGbeZsKIDFs_psx-5NN" name="Page-1">
+    <mxGraphModel dx="2047" dy="1057" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
-        <mxCell id="2" value="Usuario de finanzas - Soplando Vida A.C." style="shape=umlActor;verticalLabelPosition=middle;labelPosition=right;align=left;verticalAlign=middle;html=1;outlineConnect=0;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="1000" y="20" width="40" height="80" as="geometry"/>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=12;" value="Usuario de finanzas - Soplando Vida A.C." vertex="1">
+          <mxGeometry height="80" width="40" x="680" y="10" as="geometry" />
         </mxCell>
-        <mxCell id="3" value="Laptop Windows - SV-Cobranza.exe (Java 17 incluido, sin conexión a internet)" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fontSize=13;fillColor=#ffffff;strokeColor=#666666;dashed=1;strokeWidth=2;" vertex="1" parent="1">
-          <mxGeometry x="40" y="130" width="1240" height="820" as="geometry"/>
+        <mxCell id="3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fontSize=13;fillColor=#ffffff;strokeColor=#666666;dashed=1;strokeWidth=2;" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;&lt;span style=&quot;white-space: pre;&quot;&gt;&#x9;&lt;/span&gt;Ejecutable Java - Laptop Windows (sin conexion obligatoria a internet)" vertex="1">
+          <mxGeometry height="940" width="1410" y="130" as="geometry" />
         </mxCell>
-        <mxCell id="4" value="CAPA DE PRESENTACIÓN - paquete ui (Swing)" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#eef4fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="70" y="170" width="1180" height="170" as="geometry"/>
+        <mxCell id="4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#eef4fc;strokeColor=#6c8ebf;" value="CAPA DE PRESENTACION - Interfaz de escritorio en español (Mexico), pensada para usuario sin experiencia tecnica" vertex="1">
+          <mxGeometry height="150" width="1280" x="60" y="200" as="geometry" />
         </mxCell>
-        <mxCell id="5" value="CAPA DE NEGOCIO - paquete service (módulos independientes, usan el paquete model)" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#eef7ee;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="70" y="390" width="1180" height="170" as="geometry"/>
+        <mxCell id="5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#eef7ee;strokeColor=#82b366;" value="CAPA DE MODULOS DE NEGOCIO - Modulos desacoplados, cada uno listo para separarse como servicio" vertex="1">
+          <mxGeometry height="190" width="1280" x="60" y="390" as="geometry" />
         </mxCell>
-        <mxCell id="6" value="CAPA DE DATOS - db" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#fdf0ef;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="70" y="600" width="1180" height="320" as="geometry"/>
+        <mxCell id="6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#fffaea;strokeColor=#d6b656;" value="CAPA DE SERVICIOS TRANSVERSALES - Reglas compartidas por todos los modulos" vertex="1">
+          <mxGeometry height="150" width="1280" x="60" y="620" as="geometry" />
         </mxCell>
-        <mxCell id="7" value="VentanaPrincipal - pestañas y alerta de pendientes al abrir" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="100" y="205" width="1120" height="35" as="geometry"/>
+        <mxCell id="7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#fdf0ef;strokeColor=#b85450;" value="CAPA DE DATOS LOCAL - Archivos en la misma laptop" vertex="1">
+          <mxGeometry height="210" width="1280" x="60" y="810" as="geometry" />
         </mxCell>
-        <mxCell id="8" value="PanelMovimientos - ingresos y egresos" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="100" y="270" width="160" height="55" as="geometry"/>
+        <mxCell id="8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Pantalla de ingresos - captura y busqueda" vertex="1">
+          <mxGeometry height="80" width="160" x="100" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="9" value="PanelPendientes" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="290" y="270" width="160" height="55" as="geometry"/>
+        <mxCell id="9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Pantalla de egresos - captura y busqueda" vertex="1">
+          <mxGeometry height="80" width="160" x="300" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="10" value="PanelBitacora" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="480" y="270" width="160" height="55" as="geometry"/>
+        <mxCell id="10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Pantalla de pendientes - alerta de vencimientos al abrir la app" vertex="1">
+          <mxGeometry height="80" width="160" x="500" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="11" value="PanelBalance - totales, porcentajes y reporte por usuario" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="670" y="270" width="160" height="55" as="geometry"/>
+        <mxCell id="11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Pantalla de balance y reportes - rango de fechas libre" vertex="1">
+          <mxGeometry height="80" width="160" x="700" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="12" value="PanelRespaldo - generar y restaurar" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="270" width="160" height="55" as="geometry"/>
+        <mxCell id="12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Pantalla de respaldo - boton generar y restaurar CSV" vertex="1">
+          <mxGeometry height="80" width="160" x="900" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="13" value="MovimientoService - ingresos, egresos y detección de duplicados" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="100" y="440" width="160" height="80" as="geometry"/>
+        <mxCell id="13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Pantalla de bitacora - consulta de movimientos" vertex="1">
+          <mxGeometry height="80" width="160" x="1100" y="250" as="geometry" />
         </mxCell>
-        <mxCell id="14" value="PendienteService - pagos pendientes y alertas" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="290" y="440" width="160" height="80" as="geometry"/>
+        <mxCell id="14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;" value="Modulo Ingresos - nuevo ingreso, pago semanal o mensual, tiendita, experiencia, consulta medica y psicologica, otros" vertex="1">
+          <mxGeometry height="120" width="160" x="100" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="15" value="BitacoraService - registra las operaciones" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="480" y="440" width="160" height="80" as="geometry"/>
+        <mxCell id="15" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;" value="Modulo Egresos - nominas, renta, luz, internet, abasto, otros" vertex="1">
+          <mxGeometry height="120" width="160" x="300" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="16" value="BalanceService - balance por periodo y por usuario" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="670" y="440" width="160" height="80" as="geometry"/>
+        <mxCell id="16" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;" value="Modulo Pendientes y Alertas - cobros y pagos por fecha limite, marcar como pagado, editar o cancelar" vertex="1">
+          <mxGeometry height="120" width="160" x="500" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="17" value="ExcelService - exporta a .xlsx (Apache POI)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="860" y="440" width="160" height="80" as="geometry"/>
+        <mxCell id="17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;" value="Modulo Balance y Reportes - totales, saldo, porcentajes, reporte por usuario, filtros por nombre, fecha, cantidad y concepto" vertex="1">
+          <mxGeometry height="120" width="160" x="700" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="18" value="RespaldoService - CSV cifrado con AES-GCM" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="440" width="160" height="80" as="geometry"/>
+        <mxCell id="18" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;" value="Modulo Respaldo y Restauracion - copia semanal a CSV y recuperacion de informacion" vertex="1">
+          <mxGeometry height="120" width="160" x="900" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="19" value="DAOs - MovimientoDao, PendienteDao, CategoriaDao, UsuarioDao, BitacoraDao (JDBC)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="250" y="670" width="550" height="70" as="geometry"/>
+        <mxCell id="19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#d5e8d4;strokeColor=#82b366;" value="Modulo Bitacora - historial de fecha, hora, tipo de movimiento y monto" vertex="1">
+          <mxGeometry height="120" width="160" x="1100" y="440" as="geometry" />
         </mxCell>
-        <mxCell id="20" value="Base H2 embebida cifrada (AES)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fontSize=11;fillColor=#0078D4;strokeColor=#001E4E;fontColor=#ffffff;" vertex="1" parent="1">
-          <mxGeometry x="100" y="655" width="100" height="110" as="geometry"/>
+        <mxCell id="20" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Validacion de duplicados - detecta movimientos repetidos en ingresos y egresos antes de guardar" vertex="1">
+          <mxGeometry height="90" width="360" x="100" y="660" as="geometry" />
         </mxCell>
-        <mxCell id="21" value="clave.key - clave aleatoria local" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="90" y="810" width="120" height="60" as="geometry"/>
+        <mxCell id="21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Motor de calculo - sumas, restas, multiplicaciones, porcentajes y saldo por rango de fechas" vertex="1">
+          <mxGeometry height="90" width="160" x="700" y="660" as="geometry" />
         </mxCell>
-        <mxCell id="22" value="Reportes Excel .xlsx" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fontSize=11;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="860" y="700" width="160" height="70" as="geometry"/>
+        <mxCell id="22" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Generador de alertas - revisa fechas limite y avisa al abrir la aplicacion" vertex="1">
+          <mxGeometry height="90" width="160" x="500" y="660" as="geometry" />
         </mxCell>
-        <mxCell id="23" value="Respaldo cifrado .svr" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fontSize=11;fillColor=#ffffff;strokeColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="1050" y="700" width="160" height="70" as="geometry"/>
+        <mxCell id="23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Registro automatico en bitacora - fecha, hora, tipo de movimiento y cantidades" vertex="1">
+          <mxGeometry height="90" width="160" x="1100" y="660" as="geometry" />
         </mxCell>
-        <mxCell id="24" value="DESARROLLO Y ENTREGA - GitHub: TECMI-ESAU/SV-Cobranza" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;spacingLeft=10;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="40" y="1010" width="1240" height="170" as="geometry"/>
+        <mxCell id="24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontSize=10;fillColor=#fff2cc;strokeColor=#d6b656;" value="Servicio de respaldo y cifrado - genera y lee el CSV y protege datos sensibles" vertex="1">
+          <mxGeometry height="90" width="160" x="900" y="660" as="geometry" />
         </mxCell>
-        <mxCell id="25" value="GitHub Projects - tablero de los 29 requerimientos" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="100" y="1070" width="200" height="80" as="geometry"/>
+        <mxCell id="25" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fontSize=11;fillColor=#0078D4;strokeColor=#001E4E;fontColor=#ffffff;" value="Base de datos local cifrada - ingresos, egresos, pendientes, categorias y usuarios atendidos" vertex="1">
+          <mxGeometry height="130" width="540" x="100" y="860" as="geometry" />
         </mxCell>
-        <mxCell id="26" value="Repositorio - ramas por requerimiento, issues, milestones Beta y GA" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="420" y="1070" width="200" height="80" as="geometry"/>
+        <mxCell id="26" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;fontSize=11;fillColor=#0078D4;strokeColor=#001E4E;fontColor=#ffffff;" value="Bitacora de movimientos - historial de cambios" vertex="1">
+          <mxGeometry height="130" width="160" x="1100" y="860" as="geometry" />
         </mxCell>
-        <mxCell id="27" value="GitHub Actions - mvn test con JUnit 5" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="740" y="1070" width="200" height="80" as="geometry"/>
+        <mxCell id="27" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="Archivo CSV de respaldo - semanal, para llevar a otra computadora" vertex="1">
+          <mxGeometry height="130" width="160" x="900" y="860" as="geometry" />
         </mxCell>
-        <mxCell id="28" value="jpackage - genera SV-Cobranza.exe" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
-          <mxGeometry x="1060" y="1070" width="200" height="80" as="geometry"/>
+        <mxCell id="28" parent="1" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fontSize=11;fillColor=#f5f5f5;strokeColor=#666666;" value="Archivo Excel - reportes de balance y por usuario" vertex="1">
+          <mxGeometry height="130" width="160" x="700" y="860" as="geometry" />
         </mxCell>
-        <mxCell id="29" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="2" target="7">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="29" parent="1" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=16;fontStyle=1;" value="Diagrama de bloques - Sistema de cobranza y control financiero de Soplando Vida A.C." vertex="1">
+          <mxGeometry height="50" width="560" x="40" y="60" as="geometry" />
         </mxCell>
-        <mxCell id="30" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="7" target="8">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="30" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#fff2cc;strokeColor=#d6b656;" value="Nota: arquitectura modular por capas." vertex="1">
+          <mxGeometry height="60" width="460" x="870" y="50" as="geometry" />
         </mxCell>
-        <mxCell id="31" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="7" target="9">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="31" edge="1" parent="1" source="2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="4" value="Opera">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="32" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="7" target="10">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="32" edge="1" parent="1" source="8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="14">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="33" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="7" target="11">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="33" edge="1" parent="1" source="9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="15">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="34" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="7" target="12">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="34" edge="1" parent="1" source="10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="16">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="35" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="8" target="13">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="35" edge="1" parent="1" source="11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="17">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="36" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="9" target="14">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="36" edge="1" parent="1" source="12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="18">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="37" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="10" target="15">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="37" edge="1" parent="1" source="13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="19">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="38" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="11" target="16">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="38" edge="1" parent="1" source="14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="20">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="39" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="12" target="18">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="39" edge="1" parent="1" source="15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="20">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="40" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="14" target="13">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="40" edge="1" parent="1" source="16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="22">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="41" value="exporta" style="endArrow=block;html=1;" edge="1" parent="1" source="16" target="17">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="41" edge="1" parent="1" source="17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="21">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="42" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="13" target="19">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="42" edge="1" parent="1" source="18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="24">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="43" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="14" target="19">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="43" edge="1" parent="1" source="19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="23">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="44" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="15" target="19">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="44" edge="1" parent="1" source="20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;exitX=0.5;exitY=1;entryX=0.2;entryY=0;entryPerimeter=0;" target="25" value="Guarda">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="45" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="16" target="19">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="45" edge="1" parent="1" source="22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;entryX=0.7;entryY=0;entryPerimeter=0;" target="25" value="Consulta">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="46" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="18" target="19">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="46" edge="1" parent="1" source="21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;exitX=0.1;exitY=1;entryX=0.95;entryY=0;entryPerimeter=0;" target="25" value="Lee datos">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="47" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="19" target="20">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="47" edge="1" parent="1" source="21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;exitX=0.8;exitY=1;entryX=0.8;entryY=0;" target="28" value="Exporta">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="48" value="cifra" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="21" target="20">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="48" edge="1" parent="1" source="24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;startArrow=classic;" target="27" value="Respaldo y restauracion">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="49" value="" style="endArrow=block;html=1;" edge="1" parent="1" source="17" target="22">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="50" value="" style="endArrow=block;startArrow=block;html=1;" edge="1" parent="1" source="18" target="23">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="51" value="issues vinculados" style="endArrow=block;html=1;" edge="1" parent="1" source="25" target="26">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="52" value="push y PR" style="endArrow=block;html=1;" edge="1" parent="1" source="26" target="27">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="53" value="pruebas en verde" style="endArrow=block;html=1;" edge="1" parent="1" source="27" target="28">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="54" value="genera el .exe" style="endArrow=block;html=1;dashed=1;" edge="1" parent="1" source="28" target="3">
-          <mxGeometry relative="1" as="geometry"/>
+        <mxCell id="49" edge="1" parent="1" source="23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=classic;" target="26" value="Registra">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
