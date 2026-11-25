@@ -10,7 +10,7 @@ En desarrollo (Fase 3: ejecucion). El README completo se entrega en la Fase 4.
 
 ## Arquitectura
 
-Aplicacion en capas (presentacion Swing, servicios de negocio, datos H2 cifrada) mas la cadena de desarrollo y entrega. Fuente editable: [docs/arquitectura.drawio](docs/arquitectura.drawio).
+Diagrama de bloques de la solucion (Fase 2): aplicacion de escritorio modular en cuatro capas (presentacion, modulos de negocio, servicios transversales y datos locales), sin servidor de aplicacion ni servidor web. Fuente editable: [docs/arquitectura.drawio](docs/arquitectura.drawio).
 
 ![Arquitectura de SV-Cobranza](docs/arquitectura.png)
 
@@ -26,4 +26,5 @@ powershell -ExecutionPolicy Bypass -File .\empaquetar.ps1
 ```
 
 El segundo comando genera `dist\SV-Cobranza\SV-Cobranza.exe` con Java incluido (requiere JDK 17+ con `jpackage`). Los datos se guardan en `~\SV-Cobranza-datos`.
+
 
