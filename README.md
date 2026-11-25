@@ -8,6 +8,12 @@ Sistema de cobranza y control financiero de escritorio, desarrollado en Java par
 
 En desarrollo (Fase 3: ejecucion). El README completo se entrega en la Fase 4.
 
+## Arquitectura
+
+Aplicacion en capas (presentacion Swing, servicios de negocio, datos H2 cifrada) mas la cadena de desarrollo y entrega. Fuente editable: [docs/arquitectura.drawio](docs/arquitectura.drawio).
+
+![Arquitectura de SV-Cobranza](docs/arquitectura.png)
+
 ## Tecnologias
 
 Java 17, Maven, Swing, H2 embebida (cifrada), Apache POI, JUnit 5 y GitHub Actions.
@@ -20,3 +26,4 @@ powershell -ExecutionPolicy Bypass -File .\empaquetar.ps1
 ```
 
 El segundo comando genera `dist\SV-Cobranza\SV-Cobranza.exe` con Java incluido (requiere JDK 17+ con `jpackage`). Los datos se guardan en `~\SV-Cobranza-datos`.
+
