@@ -10,13 +10,14 @@ import java.util.List;
 import java.util.Optional;
 
 import mx.tecmilenio.svcobranza.AppException;
+import mx.tecmilenio.svcobranza.model.EstadoPendiente;
 import mx.tecmilenio.svcobranza.model.Pendiente;
-import mx.tecmilenio.svcobranza.model.TipoPendiente;
 
 public class PendienteDao {
 
-    private static final String SELECT = "SELECT id, tipo, fecha_limite, monto, concepto, categoria, "
-            + "contraparte, pagado, movimiento_id FROM pendiente ";
+    private static final String SELECT = "SELECT p.id, p.usuario_id, u.nombre, p.categoria, p.fecha_limite, "
+            + "p.monto, p.estado, p.motivo, p.movimiento_id "
+            + "FROM pendiente p JOIN usuario_atendido u ON u.id = p.usuario_id ";
 
     private final Database db;
 
@@ -25,8 +26,8 @@ public class PendienteDao {
     }
 
     public long insertar(Pendiente p) {
-        String sql = "INSERT INTO pendiente (tipo, fecha_limite, monto, concepto, categoria, contraparte, "
-                + "pagado, movimiento_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO pendiente (usuario_id, categoria, fecha_limite, monto, estado, motivo, "
+                + "movimiento_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = db.conexion().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             asignar(ps, p);
             ps.executeUpdate();
@@ -35,52 +36,63 @@ public class PendienteDao {
                 return rs.getLong(1);
             }
         } catch (SQLException e) {
-            throw new AppException("No se pudo guardar el pendiente", e);
+            throw new AppException("No se pudo guardar el cobro", e);
         }
     }
 
     public void actualizar(Pendiente p) {
-        String sql = "UPDATE pendiente SET tipo = ?, fecha_limite = ?, monto = ?, concepto = ?, categoria = ?, "
-                + "contraparte = ?, pagado = ?, movimiento_id = ? WHERE id = ?";
+        String sql = "UPDATE pendiente SET usuario_id = ?, categoria = ?, fecha_limite = ?, monto = ?, "
+                + "estado = ?, motivo = ?, movimiento_id = ? WHERE id = ?";
         try (PreparedStatement ps = db.conexion().prepareStatement(sql)) {
             asignar(ps, p);
-            ps.setLong(9, p.id());
+            ps.setLong(8, p.id());
             ps.executeUpdate();
         } catch (SQLException e) {
-            throw new AppException("No se pudo actualizar el pendiente", e);
+            throw new AppException("No se pudo actualizar el cobro", e);
         }
     }
 
     public Optional<Pendiente> buscarPorId(long id) {
-        List<Pendiente> lista = consultar(SELECT + "WHERE id = ?", List.of(id));
+        List<Pendiente> lista = consultar(SELECT + "WHERE p.id = ?", List.of(id));
         return lista.isEmpty() ? Optional.empty() : Optional.of(lista.get(0));
     }
 
     public List<Pendiente> listarTodos() {
-        return consultar(SELECT + "ORDER BY id", List.of());
+        return consultar(SELECT + "ORDER BY p.id", List.of());
     }
 
-    /** Pendientes sin pagar cuya fecha limite es igual o anterior a la fecha dada. */
-    public List<Pendiente> sinPagarHasta(LocalDate limite) {
-        return consultar(SELECT + "WHERE pagado = FALSE AND fecha_limite <= ? ORDER BY fecha_limite, id",
-                List.of(java.sql.Date.valueOf(limite)));
+    public List<Pendiente> porUsuario(long usuarioId) {
+        return consultar(SELECT + "WHERE p.usuario_id = ? ORDER BY p.fecha_limite, p.id", List.of(usuarioId));
     }
 
-    /** Pendientes de una categoria, pagados o no, para saber quien ya pago y quien no. */
-    public List<Pendiente> porCategoria(String categoria) {
-        return consultar(SELECT + "WHERE categoria = ? ORDER BY pagado, fecha_limite, id", List.of(categoria));
-    }
-
-    public List<Pendiente> porContraparte(String nombre) {
-        return consultar(SELECT + "WHERE LOWER(contraparte) = LOWER(?) ORDER BY fecha_limite, id",
+    /** Cobros de un usuario, por nombre y sin distinguir mayusculas, ordenados por fecha. */
+    public List<Pendiente> porNombreDeUsuario(String nombre) {
+        return consultar(SELECT + "WHERE LOWER(u.nombre) = LOWER(?) ORDER BY p.fecha_limite, p.id",
                 List.of(nombre.trim()));
+    }
+
+    /** Cobros en estado Pendiente con fecha igual o anterior a la dada (incluye los vencidos). */
+    public List<Pendiente> pendientesHasta(LocalDate limite) {
+        return consultar(SELECT + "WHERE p.estado = 'PENDIENTE' AND p.fecha_limite <= ? "
+                + "ORDER BY p.fecha_limite, p.id", List.of(java.sql.Date.valueOf(limite)));
+    }
+
+    /** Borra los cobros en estado Pendiente de un usuario; los pagados y condonados se conservan. */
+    public void borrarPendientesDeUsuario(long usuarioId) {
+        try (PreparedStatement ps = db.conexion()
+                .prepareStatement("DELETE FROM pendiente WHERE usuario_id = ? AND estado = 'PENDIENTE'")) {
+            ps.setLong(1, usuarioId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException("No se pudieron borrar los cobros pendientes", e);
+        }
     }
 
     public void borrarTodo() {
         try (Statement st = db.conexion().createStatement()) {
             st.execute("DELETE FROM pendiente");
         } catch (SQLException e) {
-            throw new AppException("No se pudieron borrar los pendientes", e);
+            throw new AppException("No se pudieron borrar los cobros", e);
         }
     }
 
@@ -93,30 +105,29 @@ public class PendienteDao {
                 List<Pendiente> lista = new ArrayList<>();
                 while (rs.next()) {
                     long movimiento = rs.getLong(9);
-                    lista.add(new Pendiente(rs.getLong(1), TipoPendiente.valueOf(rs.getString(2)),
-                            rs.getDate(3).toLocalDate(), rs.getBigDecimal(4), rs.getString(5),
-                            rs.getString(6), rs.getString(7), rs.getBoolean(8),
-                            rs.wasNull() ? null : movimiento));
+                    Long movimientoId = rs.wasNull() ? null : movimiento;
+                    lista.add(new Pendiente(rs.getLong(1), rs.getLong(2), rs.getString(3), rs.getString(4),
+                            rs.getDate(5).toLocalDate(), rs.getBigDecimal(6),
+                            EstadoPendiente.valueOf(rs.getString(7)), rs.getString(8), movimientoId));
                 }
                 return lista;
             }
         } catch (SQLException e) {
-            throw new AppException("No se pudieron consultar los pendientes", e);
+            throw new AppException("No se pudieron consultar los cobros", e);
         }
     }
 
     private void asignar(PreparedStatement ps, Pendiente p) throws SQLException {
-        ps.setString(1, p.tipo().name());
-        ps.setDate(2, java.sql.Date.valueOf(p.fechaLimite()));
-        ps.setBigDecimal(3, p.monto());
-        ps.setString(4, p.concepto());
-        ps.setString(5, p.categoria());
-        ps.setString(6, p.contraparte());
-        ps.setBoolean(7, p.pagado());
+        ps.setLong(1, p.usuarioId());
+        ps.setString(2, p.categoria());
+        ps.setDate(3, java.sql.Date.valueOf(p.fechaLimite()));
+        ps.setBigDecimal(4, p.monto());
+        ps.setString(5, p.estado().name());
+        ps.setString(6, p.motivo());
         if (p.movimientoId() == null) {
-            ps.setNull(8, java.sql.Types.BIGINT);
+            ps.setNull(7, java.sql.Types.BIGINT);
         } else {
-            ps.setLong(8, p.movimientoId());
+            ps.setLong(7, p.movimientoId());
         }
     }
 }

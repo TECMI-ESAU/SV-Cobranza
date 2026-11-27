@@ -20,12 +20,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import mx.tecmilenio.svcobranza.model.Balance;
+import mx.tecmilenio.svcobranza.model.EstadoPendiente;
 import mx.tecmilenio.svcobranza.model.FormaPago;
 import mx.tecmilenio.svcobranza.model.Movimiento;
 import mx.tecmilenio.svcobranza.model.Pendiente;
 import mx.tecmilenio.svcobranza.model.ReporteUsuario;
 import mx.tecmilenio.svcobranza.model.TipoMovimiento;
-import mx.tecmilenio.svcobranza.model.TipoPendiente;
 
 class ExcelServiceTest {
 
@@ -112,9 +112,9 @@ class ExcelServiceTest {
     @Test
     void exportaElReporteDeUnUsuarioConSusPagosYPendientes(@TempDir Path carpeta) throws IOException {
         Movimiento pago = new Movimiento(1, TipoMovimiento.INGRESO, LocalDate.of(2026, 11, 20), new BigDecimal("400"),
-                "Pago mensual", "Pago semanal o mensual", "Ana Prueba", FormaPago.TRANSFERENCIA, null, false);
-        Pendiente pendiente = new Pendiente(1, TipoPendiente.POR_COBRAR, LocalDate.of(2026, 12, 1),
-                new BigDecimal("600"), "Experiencia", "Experiencia", "Ana Prueba", false, null);
+                "Pago mensual", "Pago mensual", "Ana Prueba", FormaPago.TRANSFERENCIA, false);
+        Pendiente pendiente = new Pendiente(1, 1, "Ana Prueba", "Experiencia", LocalDate.of(2026, 12, 1),
+                new BigDecimal("600"), EstadoPendiente.PENDIENTE, null, null);
         ReporteUsuario reporte = new ReporteUsuario("Ana Prueba", List.of(pago), List.of(pendiente));
         Path archivo = carpeta.resolve("usuario.xlsx");
 

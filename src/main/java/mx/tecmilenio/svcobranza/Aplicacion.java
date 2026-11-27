@@ -5,24 +5,27 @@ import java.time.Clock;
 
 import mx.tecmilenio.svcobranza.db.BitacoraDao;
 import mx.tecmilenio.svcobranza.db.CategoriaDao;
+import mx.tecmilenio.svcobranza.db.ConfiguracionDao;
 import mx.tecmilenio.svcobranza.db.Database;
+import mx.tecmilenio.svcobranza.db.ExperienciaDao;
 import mx.tecmilenio.svcobranza.db.MovimientoDao;
 import mx.tecmilenio.svcobranza.db.PendienteDao;
 import mx.tecmilenio.svcobranza.db.UsuarioDao;
 import mx.tecmilenio.svcobranza.service.BalanceService;
 import mx.tecmilenio.svcobranza.service.BitacoraService;
 import mx.tecmilenio.svcobranza.service.ExcelService;
+import mx.tecmilenio.svcobranza.service.ExperienciaService;
 import mx.tecmilenio.svcobranza.service.MovimientoService;
-import mx.tecmilenio.svcobranza.service.PendienteService;
 import mx.tecmilenio.svcobranza.service.RespaldoService;
+import mx.tecmilenio.svcobranza.service.UsuarioService;
 
 /** Une la base de datos y los servicios. Es el unico lugar donde se crean las dependencias. */
 public final class Aplicacion implements AutoCloseable {
 
     private final Database db;
-    private final UsuarioDao usuarios;
+    private final UsuarioService usuarios;
+    private final ExperienciaService experiencia;
     private final MovimientoService movimientos;
-    private final PendienteService pendientes;
     private final BalanceService balance;
     private final BitacoraService bitacora;
     private final RespaldoService respaldo;
@@ -30,15 +33,19 @@ public final class Aplicacion implements AutoCloseable {
 
     public Aplicacion(Database db, Clock reloj) {
         this.db = db;
-        this.usuarios = new UsuarioDao(db);
+        UsuarioDao usuarioDao = new UsuarioDao(db);
         BitacoraDao bitacoraDao = new BitacoraDao(db);
-        MovimientoDao movimientoDao = new MovimientoDao(db, usuarios);
+        MovimientoDao movimientoDao = new MovimientoDao(db);
         PendienteDao pendienteDao = new PendienteDao(db);
+        ExperienciaDao experienciaDao = new ExperienciaDao(db);
+        ConfiguracionDao configuracionDao = new ConfiguracionDao(db);
         this.bitacora = new BitacoraService(bitacoraDao, reloj);
-        this.movimientos = new MovimientoService(db, movimientoDao, new CategoriaDao(db), bitacora);
-        this.pendientes = new PendienteService(db, pendienteDao, movimientos, bitacora, reloj);
+        this.usuarios = new UsuarioService(db, usuarioDao, movimientoDao, pendienteDao, bitacora, reloj);
+        this.experiencia = new ExperienciaService(db, experienciaDao, bitacora, reloj);
+        this.movimientos = new MovimientoService(db, movimientoDao, new CategoriaDao(db), usuarioDao, bitacora);
         this.balance = new BalanceService(movimientoDao, pendienteDao, reloj);
-        this.respaldo = new RespaldoService(db, movimientoDao, pendienteDao, bitacoraDao, bitacora);
+        this.respaldo = new RespaldoService(db, usuarioDao, movimientoDao, pendienteDao, experienciaDao,
+                configuracionDao, bitacoraDao, bitacora);
     }
 
     /** Aplicacion con la base de datos cifrada en la carpeta del usuario. */
@@ -46,12 +53,16 @@ public final class Aplicacion implements AutoCloseable {
         return new Aplicacion(Database.local(carpeta), Clock.systemDefaultZone());
     }
 
-    public MovimientoService movimientos() {
-        return movimientos;
+    public UsuarioService usuarios() {
+        return usuarios;
     }
 
-    public PendienteService pendientes() {
-        return pendientes;
+    public ExperienciaService experiencia() {
+        return experiencia;
+    }
+
+    public MovimientoService movimientos() {
+        return movimientos;
     }
 
     public BalanceService balance() {
@@ -68,10 +79,6 @@ public final class Aplicacion implements AutoCloseable {
 
     public ExcelService excel() {
         return excel;
-    }
-
-    public UsuarioDao usuarios() {
-        return usuarios;
     }
 
     @Override

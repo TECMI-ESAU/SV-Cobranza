@@ -5,7 +5,7 @@ import java.time.LocalDate;
 
 /**
  * Criterios de busqueda de movimientos. Cualquier campo en null no se aplica.
- * "persona" busca en el usuario atendido (ingresos) o en el proveedor (egresos).
+ * "persona" busca en el nombre del usuario atendido.
  */
 public record FiltroMovimiento(TipoMovimiento tipo, String persona, String concepto,
         LocalDate desde, LocalDate hasta, BigDecimal montoMin, BigDecimal montoMax,
