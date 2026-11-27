@@ -2,6 +2,7 @@ package mx.tecmilenio.svcobranza.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -26,12 +27,14 @@ import mx.tecmilenio.svcobranza.model.FiltroMovimiento;
 import mx.tecmilenio.svcobranza.model.FormaPago;
 import mx.tecmilenio.svcobranza.model.Movimiento;
 import mx.tecmilenio.svcobranza.model.TipoMovimiento;
+import mx.tecmilenio.svcobranza.model.UsuarioAtendido;
 
 class MovimientoServiceTest {
 
     private static final LocalDate HOY = LocalDate.of(2026, 11, 24);
 
     private Database db;
+    private UsuarioDao usuarios;
     private MovimientoService servicio;
     private BitacoraService bitacora;
 
@@ -41,8 +44,11 @@ class MovimientoServiceTest {
         Clock reloj = Clock.fixed(HOY.atStartOfDay(ZoneId.of("America/Mexico_City")).toInstant(),
                 ZoneId.of("America/Mexico_City"));
         bitacora = new BitacoraService(new BitacoraDao(db), reloj);
-        servicio = new MovimientoService(db, new MovimientoDao(db, new UsuarioDao(db)), new CategoriaDao(db),
-                bitacora);
+        usuarios = new UsuarioDao(db);
+        servicio = new MovimientoService(db, new MovimientoDao(db), new CategoriaDao(db), usuarios, bitacora);
+        for (String nombre : List.of("Persona", "Persona Uno", "Persona Dos", "Ana Prueba", "Beto Prueba")) {
+            registrarUsuario(nombre);
+        }
     }
 
     @AfterEach
@@ -50,14 +56,25 @@ class MovimientoServiceTest {
         db.close();
     }
 
-    private static Movimiento ingreso(String monto, String usuario, String concepto) {
-        return new Movimiento(0, TipoMovimiento.INGRESO, HOY, new BigDecimal(monto), concepto, "Tiendita",
-                usuario, FormaPago.EFECTIVO, null, false);
+    /** Alta directa en la base, sin pasar por la bitacora (los conteos de las pruebas dependen de ella). */
+    private long registrarUsuario(String nombre) {
+        return usuarios.insertar(new UsuarioAtendido(0, nombre, HOY, HOY, null, true, null, null, null, null,
+                false, null, null, List.of()));
     }
 
-    private static Movimiento egreso(String monto, String proveedor, String concepto) {
+    private static Movimiento ingreso(String monto, String usuario, String concepto) {
+        return new Movimiento(0, TipoMovimiento.INGRESO, HOY, new BigDecimal(monto), concepto, "Tiendita",
+                usuario, FormaPago.EFECTIVO, false);
+    }
+
+    private static Movimiento egreso(String monto, String concepto) {
         return new Movimiento(0, TipoMovimiento.EGRESO, HOY, new BigDecimal(monto), concepto, "Abasto", null,
-                null, proveedor, false);
+                null, false);
+    }
+
+    private static Movimiento donacion(String monto, String usuario) {
+        return new Movimiento(0, TipoMovimiento.EGRESO, HOY, new BigDecimal(monto), "", "Donación a usuario",
+                usuario, null, false);
     }
 
     // ---------- RF-ING-01 / RF-EGR-01: registrar ----------
@@ -76,11 +93,12 @@ class MovimientoServiceTest {
     }
 
     @Test
-    void registraUnEgresoConProveedor() {
-        servicio.registrar(egreso("820", "Proveedor de prueba", "Despensa"), false);
+    void registraUnEgresoSinUsuarioNiForma() {
+        servicio.registrar(egreso("820", "Despensa"), false);
 
         Movimiento leido = servicio.buscar(FiltroMovimiento.de(TipoMovimiento.EGRESO)).get(0);
-        assertEquals("Proveedor de prueba", leido.proveedor());
+        assertNull(leido.usuario());
+        assertNull(leido.formaPago());
         assertEquals("Abasto", leido.categoria());
         assertEquals(new BigDecimal("820.00"), leido.monto());
     }
@@ -104,14 +122,14 @@ class MovimientoServiceTest {
         assertThrows(AppException.class, () -> servicio.registrar(ingreso("10", "Persona", "   "), false));
         assertThrows(AppException.class, () -> servicio.registrar(ingreso("10", "  ", "concepto"), false));
         Movimiento sinForma = new Movimiento(0, TipoMovimiento.INGRESO, HOY, BigDecimal.TEN, "x", "Tiendita",
-                "Persona", null, null, false);
+                "Persona", null, false);
         assertThrows(AppException.class, () -> servicio.registrar(sinForma, false));
     }
 
     @Test
     void elMensajeDeErrorListaTodosLosProblemas() {
         Movimiento malo = new Movimiento(0, TipoMovimiento.INGRESO, null, BigDecimal.ZERO, "", "Nada", "", null,
-                null, false);
+                false);
         AppException e = assertThrows(AppException.class, () -> servicio.registrar(malo, false));
         assertTrue(e.getMessage().contains("fecha"));
         assertTrue(e.getMessage().contains("monto"));
@@ -119,20 +137,99 @@ class MovimientoServiceTest {
         assertTrue(e.getMessage().contains("categoría"));
     }
 
+    // ---------- v2.0: usuario del ingreso y donaciones ----------
+
+    @Test
+    void elIngresoOtrosPuedeNoLlevarUsuario() {
+        Movimiento otros = new Movimiento(0, TipoMovimiento.INGRESO, HOY, new BigDecimal("80"), "Venta de reciclaje",
+                "Otros", null, FormaPago.EFECTIVO, false);
+        Movimiento guardado = servicio.registrar(otros, false);
+        assertNull(guardado.usuario());
+    }
+
+    @Test
+    void cualquierOtroIngresoExigeUsuario() {
+        Movimiento sinUsuario = new Movimiento(0, TipoMovimiento.INGRESO, HOY, new BigDecimal("80"), "Pago",
+                "Pago mensual", null, FormaPago.EFECTIVO, false);
+        AppException e = assertThrows(AppException.class, () -> servicio.registrar(sinUsuario, false));
+        assertTrue(e.getMessage().contains("usuario"));
+    }
+
+    @Test
+    void elIngresoDebeSerDeUnUsuarioRegistrado() {
+        AppException e = assertThrows(AppException.class,
+                () -> servicio.registrar(ingreso("10", "Nadie Registrado", "pago"), false));
+        assertTrue(e.getMessage().contains("no está registrado"));
+        assertTrue(servicio.buscar(FiltroMovimiento.de(TipoMovimiento.INGRESO)).isEmpty());
+    }
+
+    @Test
+    void laDonacionAUsuarioExigeUnUsuarioRegistrado() {
+        assertThrows(AppException.class, () -> servicio.registrar(donacion("200", null), false));
+        assertThrows(AppException.class, () -> servicio.registrar(donacion("200", "Nadie Registrado"), false));
+
+        Movimiento guardado = servicio.registrar(donacion("200", "Ana Prueba"), false);
+
+        assertEquals("Ana Prueba", guardado.usuario());
+        assertEquals("", guardado.concepto(), "la descripcion del egreso es opcional");
+    }
+
+    @Test
+    void losDemasEgresosNoGuardanUsuarioAunqueSeLeDe() {
+        Movimiento conUsuario = new Movimiento(0, TipoMovimiento.EGRESO, HOY, new BigDecimal("300"), "Recibo",
+                "Luz", "Ana Prueba", null, false);
+        assertNull(servicio.registrar(conUsuario, false).usuario());
+    }
+
+    @Test
+    void laDescripcionDelEgresoEsOpcional() {
+        Movimiento sinDescripcion = new Movimiento(0, TipoMovimiento.EGRESO, HOY, new BigDecimal("300"), null,
+                "Renta", null, null, false);
+        Movimiento guardado = servicio.registrar(sinDescripcion, false);
+        assertEquals("", guardado.concepto());
+    }
+
+    @Test
+    void aceptaCualquierFechaPasada() {
+        Movimiento antiguo = new Movimiento(0, TipoMovimiento.INGRESO, HOY.minusYears(2), new BigDecimal("50"),
+                "Pago de hace dos años", "Pago semanal", "Persona", FormaPago.EFECTIVO, false);
+        assertEquals(HOY.minusYears(2), servicio.registrar(antiguo, false).fecha());
+    }
+
+    @Test
+    void elHistorialDeUnUsuarioDadoDeBajaSePuedeCorregirSinCambiarSuNombre() {
+        Movimiento m = servicio.registrar(ingreso("100", "Persona Uno", "pago"), false);
+        usuarios.borrar(usuarios.buscarPorNombre("Persona Uno").orElseThrow().id());
+
+        Movimiento corregido = servicio.editar(new Movimiento(m.id(), m.tipo(), m.fecha(), new BigDecimal("120"),
+                m.concepto(), m.categoria(), m.usuario(), m.formaPago(), false));
+
+        assertEquals(new BigDecimal("120.00"), corregido.monto());
+        assertEquals("Persona Uno", servicio.buscar(FiltroMovimiento.de(TipoMovimiento.INGRESO)).get(0).usuario());
+    }
+
+    @Test
+    void alEditarNoSePuedePasarElPagoAUnUsuarioNoRegistrado() {
+        Movimiento m = servicio.registrar(ingreso("100", "Persona Uno", "pago"), false);
+        assertThrows(AppException.class, () -> servicio.editar(new Movimiento(m.id(), m.tipo(), m.fecha(),
+                m.monto(), m.concepto(), m.categoria(), "Nadie Registrado", m.formaPago(), false)));
+    }
+
     // ---------- RF-ING-02 / RF-EGR-02: categorias ----------
 
     @Test
     void ofreceSoloLasCategoriasDeCadaTipo() {
-        assertEquals(6, servicio.categorias(TipoMovimiento.INGRESO).size());
-        assertEquals(6, servicio.categorias(TipoMovimiento.EGRESO).size());
+        assertEquals(7, servicio.categorias(TipoMovimiento.INGRESO).size());
+        assertEquals(7, servicio.categorias(TipoMovimiento.EGRESO).size());
         assertFalse(servicio.categorias(TipoMovimiento.INGRESO).contains("Renta"));
         assertFalse(servicio.categorias(TipoMovimiento.EGRESO).contains("Tiendita"));
+        assertTrue(servicio.categorias(TipoMovimiento.EGRESO).contains("Donación a usuario"));
     }
 
     @Test
     void rechazaUnaCategoriaDeOtroTipo() {
         Movimiento ingresoConCategoriaDeEgreso = new Movimiento(0, TipoMovimiento.INGRESO, HOY, BigDecimal.TEN,
-                "x", "Renta", "Persona", FormaPago.EFECTIVO, null, false);
+                "x", "Renta", "Persona", FormaPago.EFECTIVO, false);
         assertThrows(AppException.class, () -> servicio.registrar(ingresoConCategoriaDeEgreso, false));
     }
 
@@ -159,7 +256,7 @@ class MovimientoServiceTest {
     @Test
     void unEgresoConElMismoMontoNoEsDuplicadoDeUnIngreso() {
         servicio.registrar(ingreso("500", "Persona Uno", "pago"), false);
-        servicio.registrar(egreso("500", "Proveedor", "compra"), false);
+        servicio.registrar(egreso("500", "compra"), false);
         assertEquals(1, servicio.buscar(FiltroMovimiento.de(TipoMovimiento.EGRESO)).size());
     }
 
@@ -168,7 +265,7 @@ class MovimientoServiceTest {
         servicio.registrar(ingreso("500", "Persona Uno", "pago"), false);
         servicio.registrar(ingreso("500.01", "Persona Uno", "pago"), false);
         Movimiento otroDia = new Movimiento(0, TipoMovimiento.INGRESO, HOY.minusDays(1), new BigDecimal("500"),
-                "pago", "Tiendita", "Persona Uno", FormaPago.EFECTIVO, null, false);
+                "pago", "Tiendita", "Persona Uno", FormaPago.EFECTIVO, false);
         servicio.registrar(otroDia, false);
         assertEquals(3, servicio.buscar(FiltroMovimiento.de(TipoMovimiento.INGRESO)).size());
     }
@@ -186,11 +283,11 @@ class MovimientoServiceTest {
     private void cargarDatosDeBusqueda() {
         servicio.registrar(ingreso("100", "Ana Prueba", "Tiendita semana 1"), false);
         servicio.registrar(new Movimiento(0, TipoMovimiento.INGRESO, HOY.minusDays(10), new BigDecimal("250"),
-                "Experiencia mensual", "Experiencia", "Beto Prueba", FormaPago.DEPOSITO, null, false), false);
+                "Experiencia mensual", "Experiencia", "Beto Prueba", FormaPago.DEPOSITO, false), false);
         servicio.registrar(new Movimiento(0, TipoMovimiento.INGRESO, HOY.minusDays(3), new BigDecimal("900"),
-                "Pago mensual", "Pago semanal o mensual", "Ana Prueba", FormaPago.TRANSFERENCIA, null, false),
-                false);
-        servicio.registrar(egreso("300", "Luz y Fuerza de prueba", "Recibo de luz"), false);
+                "Pago mensual", "Pago mensual", "Ana Prueba", FormaPago.TRANSFERENCIA, false), false);
+        servicio.registrar(new Movimiento(0, TipoMovimiento.EGRESO, HOY, new BigDecimal("300"), "Recibo de luz",
+                "Luz", null, null, false), false);
     }
 
     private static FiltroMovimiento filtro(TipoMovimiento tipo, String persona, String concepto, LocalDate desde,
@@ -239,9 +336,12 @@ class MovimientoServiceTest {
     }
 
     @Test
-    void losEgresosSeFiltranPorProveedorYConcepto() {
+    void losEgresosSeFiltranPorConceptoYLasDonacionesPorUsuario() {
         cargarDatosDeBusqueda();
-        assertEquals(1, servicio.buscar(filtro(TipoMovimiento.EGRESO, "luz", "recibo", null, null, null, null)).size());
+        servicio.registrar(donacion("75", "Ana Prueba"), false);
+
+        assertEquals(1, servicio.buscar(filtro(TipoMovimiento.EGRESO, null, "recibo", null, null, null, null)).size());
+        assertEquals(1, servicio.buscar(filtro(TipoMovimiento.EGRESO, "ana", null, null, null, null, null)).size());
         assertEquals(0, servicio.buscar(filtro(TipoMovimiento.EGRESO, "otro", null, null, null, null, null)).size());
     }
 
@@ -259,7 +359,7 @@ class MovimientoServiceTest {
     void editaUnMovimientoYDejaElAntesYElDespuesEnLaBitacora() {
         Movimiento original = servicio.registrar(ingreso("100", "Persona Uno", "pago"), false);
         Movimiento cambios = new Movimiento(original.id(), TipoMovimiento.INGRESO, HOY, new BigDecimal("120"),
-                "pago corregido", "Tiendita", "Persona Uno", FormaPago.EFECTIVO, null, false);
+                "pago corregido", "Tiendita", "Persona Uno", FormaPago.EFECTIVO, false);
 
         servicio.editar(cambios);
 
@@ -276,7 +376,7 @@ class MovimientoServiceTest {
     void laEdicionTambienValidaLosDatos() {
         Movimiento original = servicio.registrar(ingreso("100", "Persona Uno", "pago"), false);
         Movimiento malo = new Movimiento(original.id(), TipoMovimiento.INGRESO, HOY, new BigDecimal("-1"), "pago",
-                "Tiendita", "Persona Uno", FormaPago.EFECTIVO, null, false);
+                "Tiendita", "Persona Uno", FormaPago.EFECTIVO, false);
         assertThrows(AppException.class, () -> servicio.editar(malo));
     }
 
@@ -315,7 +415,7 @@ class MovimientoServiceTest {
     void cadaAltaEdicionYCancelacionQuedaEnLaBitacora() {
         Movimiento m = servicio.registrar(ingreso("100", "Persona Uno", "pago"), false);
         servicio.editar(new Movimiento(m.id(), m.tipo(), m.fecha(), new BigDecimal("110"), m.concepto(),
-                m.categoria(), m.usuario(), m.formaPago(), null, false));
+                m.categoria(), m.usuario(), m.formaPago(), false));
         servicio.cancelar(m.id());
 
         List<EntradaBitacora> entradas = bitacora.consultar();

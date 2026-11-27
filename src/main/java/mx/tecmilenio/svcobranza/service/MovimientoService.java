@@ -9,7 +9,10 @@ import mx.tecmilenio.svcobranza.AppException;
 import mx.tecmilenio.svcobranza.db.CategoriaDao;
 import mx.tecmilenio.svcobranza.db.Database;
 import mx.tecmilenio.svcobranza.db.MovimientoDao;
+import mx.tecmilenio.svcobranza.db.UsuarioDao;
+import mx.tecmilenio.svcobranza.model.Categorias;
 import mx.tecmilenio.svcobranza.model.FiltroMovimiento;
+import mx.tecmilenio.svcobranza.model.FormaPago;
 import mx.tecmilenio.svcobranza.model.Movimiento;
 import mx.tecmilenio.svcobranza.model.TipoMovimiento;
 import mx.tecmilenio.svcobranza.ui.Formatos;
@@ -23,13 +26,15 @@ public class MovimientoService {
     private final Database db;
     private final MovimientoDao movimientos;
     private final CategoriaDao categorias;
+    private final UsuarioDao usuarios;
     private final BitacoraService bitacora;
 
     public MovimientoService(Database db, MovimientoDao movimientos, CategoriaDao categorias,
-            BitacoraService bitacora) {
+            UsuarioDao usuarios, BitacoraService bitacora) {
         this.db = db;
         this.movimientos = movimientos;
         this.categorias = categorias;
+        this.usuarios = usuarios;
         this.bitacora = bitacora;
     }
 
@@ -44,6 +49,7 @@ public class MovimientoService {
     public Movimiento registrar(Movimiento nuevo, boolean confirmarDuplicado) {
         Movimiento m = normalizar(nuevo);
         validar(m);
+        validarUsuarioRegistrado(m);
         if (!confirmarDuplicado) {
             List<Movimiento> parecidos = movimientos.posiblesDuplicados(m.conId(0));
             if (!parecidos.isEmpty()) {
@@ -65,6 +71,10 @@ public class MovimientoService {
                 .orElseThrow(() -> new AppException("El movimiento ya no existe."));
         if (anterior.cancelado()) {
             throw new AppException("Un movimiento cancelado no se puede editar.");
+        }
+        // Si el usuario ya se dio de baja, su historial se puede corregir sin cambiar el nombre
+        if (!java.util.Objects.equals(anterior.usuario(), m.usuario())) {
+            validarUsuarioRegistrado(m);
         }
         return db.transaccion(() -> {
             movimientos.actualizar(m);
@@ -98,8 +108,21 @@ public class MovimientoService {
 
     private Movimiento normalizar(Movimiento m) {
         BigDecimal monto = m.monto() == null ? null : m.monto().setScale(2, RoundingMode.HALF_UP);
-        return new Movimiento(m.id(), m.tipo(), m.fecha(), monto, limpiar(m.concepto()), m.categoria(),
-                limpiar(m.usuario()), m.formaPago(), limpiar(m.proveedor()), m.cancelado());
+        String concepto = limpiar(m.concepto());
+        if (concepto == null && m.tipo() == TipoMovimiento.EGRESO) {
+            concepto = "";
+        }
+        String usuario = limpiar(m.usuario());
+        if (usuario != null && usuario.isEmpty()) {
+            usuario = null;
+        }
+        // El egreso solo lleva usuario en las donaciones, y la forma de pago es solo de ingresos
+        if (m.tipo() == TipoMovimiento.EGRESO && !Categorias.DONACION.equals(m.categoria())) {
+            usuario = null;
+        }
+        FormaPago forma = m.tipo() == TipoMovimiento.INGRESO ? m.formaPago() : null;
+        return new Movimiento(m.id(), m.tipo(), m.fecha(), monto, concepto, m.categoria(), usuario, forma,
+                m.cancelado());
     }
 
     private void validar(Movimiento m) {
@@ -113,29 +136,41 @@ public class MovimientoService {
         if (m.monto() == null || m.monto().signum() <= 0) {
             errores.add("El monto debe ser mayor que cero.");
         }
-        if (m.concepto() == null || m.concepto().isEmpty()) {
+        if (m.tipo() == TipoMovimiento.INGRESO && (m.concepto() == null || m.concepto().isEmpty())) {
             errores.add("Falta el concepto.");
         }
         if (m.tipo() != null && (m.categoria() == null || !categorias.listar(m.tipo()).contains(m.categoria()))) {
             errores.add("Elige una categoría de la lista.");
         }
         if (m.tipo() == TipoMovimiento.INGRESO) {
-            if (m.usuario() == null || m.usuario().isEmpty()) {
+            // "Otros" es el unico ingreso que puede no venir de un usuario registrado
+            if (m.usuario() == null && !Categorias.OTROS.equals(m.categoria())) {
                 errores.add("Falta el usuario atendido.");
             }
             if (m.formaPago() == null) {
                 errores.add("Falta la forma de pago.");
             }
+        } else if (m.tipo() == TipoMovimiento.EGRESO && Categorias.DONACION.equals(m.categoria())
+                && m.usuario() == null) {
+            errores.add("Falta el usuario que recibe la donación.");
         }
         if (!errores.isEmpty()) {
             throw new AppException(String.join("\n", errores));
         }
     }
 
+    private void validarUsuarioRegistrado(Movimiento m) {
+        if (m.usuario() != null && usuarios.buscarPorNombre(m.usuario()).isEmpty()) {
+            throw new AppException("El usuario \"" + m.usuario() + "\" no está registrado. "
+                    + "Elígelo de la lista o regístralo primero en Nuevo Usuario.");
+        }
+    }
+
     private static String descripcion(Movimiento m) {
         String persona = m.persona().isEmpty() ? "" : " (" + m.persona() + ")";
+        String concepto = m.concepto() == null || m.concepto().isEmpty() ? "" : " - " + m.concepto();
         return m.tipo().etiqueta() + " " + Formatos.fecha(m.fecha()) + " " + Formatos.moneda(m.monto())
-                + " - " + m.concepto() + " [" + m.categoria() + "]" + persona;
+                + concepto + " [" + m.categoria() + "]" + persona;
     }
 
     private static String limpiar(String texto) {

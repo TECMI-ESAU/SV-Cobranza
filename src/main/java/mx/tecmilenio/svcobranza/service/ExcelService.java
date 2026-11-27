@@ -68,13 +68,13 @@ public class ExcelService {
             }
             fila++;
             fila = texto(hoja, fila, negrita, "Pendientes");
-            fila = encabezado(hoja, fila, negrita, "Fecha límite", "Concepto", "Categoría", "Estado", "Monto");
+            fila = encabezado(hoja, fila, negrita, "Fecha límite", "Concepto", "Motivo", "Estado", "Monto");
             for (Pendiente p : reporte.pendientes()) {
                 Row r = hoja.createRow(fila++);
                 r.createCell(0).setCellValue(Formatos.fecha(p.fechaLimite()));
-                r.createCell(1).setCellValue(p.concepto());
-                r.createCell(2).setCellValue(p.categoria());
-                r.createCell(3).setCellValue(p.pagado() ? "Pagado" : "Pendiente");
+                r.createCell(1).setCellValue(p.categoria());
+                r.createCell(2).setCellValue(p.motivo() == null ? "" : p.motivo());
+                r.createCell(3).setCellValue(p.estado().toString());
                 r.createCell(4).setCellValue(Formatos.moneda(p.monto()));
             }
             ajustar(hoja, 5);

@@ -21,21 +21,18 @@ import mx.tecmilenio.svcobranza.model.TipoMovimiento;
 public class MovimientoDao {
 
     private static final String SELECT = "SELECT m.id, m.tipo, m.fecha, m.monto, m.concepto, m.categoria, "
-            + "u.nombre, m.forma_pago, m.proveedor, m.cancelado "
-            + "FROM movimiento m LEFT JOIN usuario_atendido u ON u.id = m.usuario_id ";
+            + "m.usuario, m.forma_pago, m.cancelado FROM movimiento m ";
 
     private final Database db;
-    private final UsuarioDao usuarios;
 
-    public MovimientoDao(Database db, UsuarioDao usuarios) {
+    public MovimientoDao(Database db) {
         this.db = db;
-        this.usuarios = usuarios;
     }
 
     /** Inserta el movimiento y devuelve su id. */
     public long insertar(Movimiento m) {
-        String sql = "INSERT INTO movimiento (tipo, fecha, monto, concepto, categoria, usuario_id, "
-                + "forma_pago, proveedor, cancelado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO movimiento (tipo, fecha, monto, concepto, categoria, usuario, "
+                + "forma_pago, cancelado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = db.conexion().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             asignar(ps, m);
             ps.executeUpdate();
@@ -50,10 +47,10 @@ public class MovimientoDao {
 
     public void actualizar(Movimiento m) {
         String sql = "UPDATE movimiento SET tipo = ?, fecha = ?, monto = ?, concepto = ?, categoria = ?, "
-                + "usuario_id = ?, forma_pago = ?, proveedor = ?, cancelado = ? WHERE id = ?";
+                + "usuario = ?, forma_pago = ?, cancelado = ? WHERE id = ?";
         try (PreparedStatement ps = db.conexion().prepareStatement(sql)) {
             asignar(ps, m);
-            ps.setLong(10, m.id());
+            ps.setLong(9, m.id());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new AppException("No se pudo actualizar el movimiento", e);
@@ -82,10 +79,8 @@ public class MovimientoDao {
             sql.append("AND m.cancelado = FALSE ");
         }
         if (hayTexto(f.persona())) {
-            sql.append("AND (LOWER(u.nombre) LIKE ? OR LOWER(m.proveedor) LIKE ?) ");
-            String patron = "%" + f.persona().trim().toLowerCase() + "%";
-            parametros.add(patron);
-            parametros.add(patron);
+            sql.append("AND LOWER(m.usuario) LIKE ? ");
+            parametros.add("%" + f.persona().trim().toLowerCase() + "%");
         }
         if (hayTexto(f.concepto())) {
             sql.append("AND LOWER(m.concepto) LIKE ? ");
@@ -118,8 +113,20 @@ public class MovimientoDao {
 
     /** Movimientos de un usuario atendido, sin los cancelados, del mas antiguo al mas reciente. */
     public List<Movimiento> listarPorUsuario(String nombre) {
-        return consultar(SELECT + "WHERE LOWER(u.nombre) = LOWER(?) AND m.cancelado = FALSE "
+        return consultar(SELECT + "WHERE LOWER(m.usuario) = LOWER(?) AND m.cancelado = FALSE "
                 + "ORDER BY m.fecha, m.id", List.of(nombre.trim()));
+    }
+
+    /** Cambia el nombre guardado como texto en los movimientos de un usuario que se renombra. */
+    public void renombrarUsuario(String anterior, String nuevo) {
+        try (PreparedStatement ps = db.conexion()
+                .prepareStatement("UPDATE movimiento SET usuario = ? WHERE usuario = ?")) {
+            ps.setString(1, nuevo);
+            ps.setString(2, anterior);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException("No se pudo actualizar el nombre en los movimientos", e);
+        }
     }
 
     /**
@@ -156,7 +163,6 @@ public class MovimientoDao {
         try (Statement st = db.conexion().createStatement()) {
             st.execute("DELETE FROM pendiente");
             st.execute("DELETE FROM movimiento");
-            st.execute("DELETE FROM usuario_atendido");
         } catch (SQLException e) {
             throw new AppException("No se pudieron borrar los movimientos", e);
         }
@@ -185,22 +191,16 @@ public class MovimientoDao {
         ps.setBigDecimal(3, m.monto());
         ps.setString(4, m.concepto());
         ps.setString(5, m.categoria());
-        if (m.tipo() == TipoMovimiento.INGRESO && hayTexto(m.usuario())) {
-            ps.setLong(6, usuarios.obtenerOCrearId(m.usuario()));
-        } else {
-            ps.setNull(6, java.sql.Types.BIGINT);
-        }
+        ps.setString(6, hayTexto(m.usuario()) ? m.usuario() : null);
         ps.setString(7, m.formaPago() == null ? null : m.formaPago().name());
-        ps.setString(8, m.tipo() == TipoMovimiento.EGRESO ? m.proveedor() : null);
-        ps.setBoolean(9, m.cancelado());
+        ps.setBoolean(8, m.cancelado());
     }
 
     private Movimiento leer(ResultSet rs) throws SQLException {
         String forma = rs.getString(8);
         return new Movimiento(rs.getLong(1), TipoMovimiento.valueOf(rs.getString(2)),
                 rs.getDate(3).toLocalDate(), rs.getBigDecimal(4), rs.getString(5), rs.getString(6),
-                rs.getString(7), forma == null ? null : FormaPago.valueOf(forma), rs.getString(9),
-                rs.getBoolean(10));
+                rs.getString(7), forma == null ? null : FormaPago.valueOf(forma), rs.getBoolean(9));
     }
 
     private static boolean hayTexto(String s) {

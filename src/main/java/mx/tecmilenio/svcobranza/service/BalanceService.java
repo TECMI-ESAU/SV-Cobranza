@@ -51,6 +51,6 @@ public class BalanceService {
             throw new AppException("Indica el nombre del usuario atendido.");
         }
         return new ReporteUsuario(usuario.trim(), movimientos.listarPorUsuario(usuario),
-                pendientes.porContraparte(usuario));
+                pendientes.porNombreDeUsuario(usuario));
     }
 }

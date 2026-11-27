@@ -4,26 +4,24 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Un ingreso o egreso. Para un ingreso se usa "usuario" (usuario atendido) y "formaPago";
- * para un egreso se usa "proveedor". Un id de 0 indica que aun no se guarda.
+ * Un ingreso o egreso. "usuario" es el nombre del usuario atendido, guardado como texto para
+ * conservar el historial aunque el usuario se borre: lo llevan los ingresos y los egresos de
+ * "Donación a usuario". "formaPago" solo aplica a los ingresos. Un id de 0 indica que aun
+ * no se guarda.
  */
 public record Movimiento(long id, TipoMovimiento tipo, LocalDate fecha, BigDecimal monto,
-        String concepto, String categoria, String usuario, FormaPago formaPago,
-        String proveedor, boolean cancelado) {
+        String concepto, String categoria, String usuario, FormaPago formaPago, boolean cancelado) {
 
     public Movimiento conId(long nuevoId) {
-        return new Movimiento(nuevoId, tipo, fecha, monto, concepto, categoria, usuario,
-                formaPago, proveedor, cancelado);
+        return new Movimiento(nuevoId, tipo, fecha, monto, concepto, categoria, usuario, formaPago, cancelado);
     }
 
     public Movimiento comoCancelado() {
-        return new Movimiento(id, tipo, fecha, monto, concepto, categoria, usuario,
-                formaPago, proveedor, true);
+        return new Movimiento(id, tipo, fecha, monto, concepto, categoria, usuario, formaPago, true);
     }
 
-    /** Usuario atendido (ingresos) o proveedor (egresos). */
+    /** Nombre del usuario atendido, o vacio si no lleva. */
     public String persona() {
-        String valor = tipo == TipoMovimiento.INGRESO ? usuario : proveedor;
-        return valor == null ? "" : valor;
+        return usuario == null ? "" : usuario;
     }
 }

@@ -12,7 +12,7 @@ public record ReporteUsuario(String usuario, List<Movimiento> movimientos,
     }
 
     public BigDecimal totalAdeudado() {
-        return pendientes.stream().filter(p -> !p.pagado()).map(Pendiente::monto)
+        return pendientes.stream().filter(p -> p.estado() == EstadoPendiente.PENDIENTE).map(Pendiente::monto)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

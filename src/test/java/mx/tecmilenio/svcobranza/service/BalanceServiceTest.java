@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,12 +23,13 @@ import mx.tecmilenio.svcobranza.db.MovimientoDao;
 import mx.tecmilenio.svcobranza.db.PendienteDao;
 import mx.tecmilenio.svcobranza.db.UsuarioDao;
 import mx.tecmilenio.svcobranza.model.Balance;
+import mx.tecmilenio.svcobranza.model.EstadoPendiente;
 import mx.tecmilenio.svcobranza.model.FormaPago;
 import mx.tecmilenio.svcobranza.model.Movimiento;
 import mx.tecmilenio.svcobranza.model.Pendiente;
 import mx.tecmilenio.svcobranza.model.ReporteUsuario;
 import mx.tecmilenio.svcobranza.model.TipoMovimiento;
-import mx.tecmilenio.svcobranza.model.TipoPendiente;
+import mx.tecmilenio.svcobranza.model.UsuarioAtendido;
 
 class BalanceServiceTest {
 
@@ -35,8 +37,9 @@ class BalanceServiceTest {
     private static final LocalDate HOY = LocalDate.of(2026, 11, 24);
 
     private Database db;
+    private UsuarioDao usuarios;
+    private PendienteDao pendienteDao;
     private MovimientoService movimientos;
-    private PendienteService pendientes;
     private BalanceService balance;
 
     @BeforeEach
@@ -45,10 +48,10 @@ class BalanceServiceTest {
         ZoneId zona = ZoneId.of("America/Mexico_City");
         Clock reloj = Clock.fixed(HOY.atStartOfDay(zona).toInstant(), zona);
         BitacoraService bitacora = new BitacoraService(new BitacoraDao(db), reloj);
-        MovimientoDao movimientoDao = new MovimientoDao(db, new UsuarioDao(db));
-        PendienteDao pendienteDao = new PendienteDao(db);
-        movimientos = new MovimientoService(db, movimientoDao, new CategoriaDao(db), bitacora);
-        pendientes = new PendienteService(db, pendienteDao, movimientos, bitacora, reloj);
+        usuarios = new UsuarioDao(db);
+        MovimientoDao movimientoDao = new MovimientoDao(db);
+        pendienteDao = new PendienteDao(db);
+        movimientos = new MovimientoService(db, movimientoDao, new CategoriaDao(db), usuarios, bitacora);
         balance = new BalanceService(movimientoDao, pendienteDao, reloj);
     }
 
@@ -57,14 +60,29 @@ class BalanceServiceTest {
         db.close();
     }
 
+    /** Registra al usuario si todavia no existe y devuelve su id. */
+    private long usuario(String nombre) {
+        return usuarios.buscarPorNombre(nombre).map(UsuarioAtendido::id)
+                .orElseGet(() -> usuarios.insertar(new UsuarioAtendido(0, nombre, HOY, HOY, null, true, null, null,
+                        null, null, false, null, null, List.of())));
+    }
+
     private Movimiento ingreso(LocalDate fecha, String monto, String categoria, String usuario) {
+        usuario(usuario);
         return movimientos.registrar(new Movimiento(0, TipoMovimiento.INGRESO, fecha, new BigDecimal(monto),
-                "Ingreso de prueba", categoria, usuario, FormaPago.EFECTIVO, null, false), true);
+                "Ingreso de prueba", categoria, usuario, FormaPago.EFECTIVO, false), true);
     }
 
     private Movimiento egreso(LocalDate fecha, String monto, String categoria) {
         return movimientos.registrar(new Movimiento(0, TipoMovimiento.EGRESO, fecha, new BigDecimal(monto),
-                "Egreso de prueba", categoria, null, null, "Proveedor de prueba", false), true);
+                "Egreso de prueba", categoria, null, null, false), true);
+    }
+
+    private Pendiente cobro(String usuario, String categoria, LocalDate fecha, String monto, EstadoPendiente estado) {
+        long usuarioId = usuario(usuario);
+        long id = pendienteDao.insertar(new Pendiente(0, usuarioId, usuario, categoria, fecha, new BigDecimal(monto),
+                estado, null, null));
+        return pendienteDao.buscarPorId(id).orElseThrow();
     }
 
     // ---------- RF-BAL-01 ----------
@@ -210,11 +228,10 @@ class BalanceServiceTest {
 
     @Test
     void elReporteDeUsuarioReunePagosYLoQueAdeuda() {
-        ingreso(HOY.minusDays(7), "400", "Pago semanal o mensual", "Ana Prueba");
+        ingreso(HOY.minusDays(7), "400", "Pago mensual", "Ana Prueba");
         ingreso(HOY, "250.50", "Tiendita", "Ana Prueba");
         ingreso(HOY, "999", "Tiendita", "Beto Prueba");
-        pendientes.registrar(new Pendiente(0, TipoPendiente.POR_COBRAR, HOY.plusDays(3), new BigDecimal("600"),
-                "Pago mensual", "Pago semanal o mensual", "Ana Prueba", false, null));
+        cobro("Ana Prueba", "Pago mensual", HOY.plusDays(3), "600", EstadoPendiente.PENDIENTE);
 
         ReporteUsuario r = balance.reportePorUsuario("  ana prueba ");
 
@@ -225,17 +242,18 @@ class BalanceServiceTest {
     }
 
     @Test
-    void elReporteNoCuentaLosPagosCanceladosNiLosPendientesYaPagados() {
+    void elReporteNoCuentaLosPagosCanceladosNiLosCobrosPagadosOCondonados() {
         Movimiento m = ingreso(HOY, "400", "Tiendita", "Ana Prueba");
         movimientos.cancelar(m.id());
-        Pendiente p = pendientes.registrar(new Pendiente(0, TipoPendiente.POR_COBRAR, HOY, new BigDecimal("100"),
-                "Pago", "Tiendita", "Ana Prueba", false, null));
-        pendientes.marcarPagado(p.id(), HOY, FormaPago.EFECTIVO);
+        ingreso(HOY, "100", "Pago mensual", "Ana Prueba");
+        cobro("Ana Prueba", "Pago mensual", HOY, "100", EstadoPendiente.PAGADO);
+        cobro("Ana Prueba", "Médico", HOY, "80", EstadoPendiente.CONDONADO);
 
         ReporteUsuario r = balance.reportePorUsuario("Ana Prueba");
 
         assertEquals(new BigDecimal("100.00"), r.totalPagado());
         assertEquals(0, r.totalAdeudado().signum());
+        assertEquals(2, r.pendientes().size(), "el reporte lista tambien los pagados y condonados");
     }
 
     @Test

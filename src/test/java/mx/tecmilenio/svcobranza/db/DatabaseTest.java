@@ -20,15 +20,19 @@ import mx.tecmilenio.svcobranza.model.TipoMovimiento;
 
 class DatabaseTest {
 
+    private static final String USUARIO_DE_PRUEBA = "INSERT INTO usuario_atendido (nombre, fecha_ingreso, "
+            + "fecha_registro) VALUES ('Persona de prueba', DATE '2026-11-24', DATE '2026-11-24')";
+
     @Test
     void creaLasTablasDelEsquema() throws Exception {
         try (Database db = Database.enMemoria("esquema")) {
             try (Statement st = db.conexion().createStatement();
                     ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES "
                             + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME IN "
-                            + "('MOVIMIENTO','PENDIENTE','CATEGORIA','USUARIO_ATENDIDO','BITACORA')")) {
+                            + "('MOVIMIENTO','PENDIENTE','CATEGORIA','USUARIO_ATENDIDO','SERVICIO_USUARIO',"
+                            + "'EXPERIENCIA_FECHA','CONFIGURACION','BITACORA')")) {
                 rs.next();
-                assertEquals(5, rs.getInt(1));
+                assertEquals(8, rs.getInt(1));
             }
         }
     }
@@ -39,11 +43,10 @@ class DatabaseTest {
             CategoriaDao dao = new CategoriaDao(db);
             List<String> ingresos = dao.listar(TipoMovimiento.INGRESO);
             List<String> egresos = dao.listar(TipoMovimiento.EGRESO);
-            assertEquals(6, ingresos.size());
-            assertTrue(ingresos.contains("Tiendita"));
-            assertTrue(ingresos.contains("Consulta médica o psicológica"));
-            assertEquals(6, egresos.size());
-            assertTrue(egresos.contains("Nóminas"));
+            assertEquals(List.of("Pago semanal", "Pago mensual", "Médico", "Psicólogo", "Tiendita", "Experiencia",
+                    "Otros"), ingresos);
+            assertEquals(List.of("Nóminas", "Renta", "Luz", "Internet", "Abasto", "Donación a usuario", "Otros"),
+                    egresos);
         }
     }
 
@@ -52,9 +55,9 @@ class DatabaseTest {
         try (Database db = Database.enMemoria("sinduplicar")) {
             // Simula una segunda apertura: el esquema y las categorias se vuelven a preparar
             try (Database otra = Database.enMemoria("sinduplicar")) {
-                assertEquals(6, new CategoriaDao(otra).listar(TipoMovimiento.INGRESO).size());
+                assertEquals(7, new CategoriaDao(otra).listar(TipoMovimiento.INGRESO).size());
             }
-            assertEquals(6, new CategoriaDao(db).listar(TipoMovimiento.INGRESO).size());
+            assertEquals(7, new CategoriaDao(db).listar(TipoMovimiento.INGRESO).size());
         }
     }
 
@@ -63,7 +66,7 @@ class DatabaseTest {
         try (Database db = Database.enMemoria("rollback")) {
             assertThrows(IllegalStateException.class, () -> db.transaccion(() -> {
                 try (Statement st = db.conexion().createStatement()) {
-                    st.execute("INSERT INTO usuario_atendido (nombre) VALUES ('Persona de prueba')");
+                    st.execute(USUARIO_DE_PRUEBA);
                 }
                 throw new IllegalStateException("fallo simulado");
             }));
@@ -79,7 +82,7 @@ class DatabaseTest {
     void laBaseLocalQuedaCifradaYSeReabreConLaMismaClave(@TempDir Path carpeta) throws Exception {
         try (Database db = Database.local(carpeta)) {
             try (Statement st = db.conexion().createStatement()) {
-                st.execute("INSERT INTO usuario_atendido (nombre) VALUES ('Persona de prueba')");
+                st.execute(USUARIO_DE_PRUEBA);
             }
         }
         assertTrue(Files.exists(carpeta.resolve("clave.key")), "debe crearse la clave");
@@ -104,5 +107,32 @@ class DatabaseTest {
         Files.writeString(carpeta.resolve("clave.key"), "otraclavecualquiera123");
         assertThrows(AppException.class, () -> Database.local(carpeta));
         assertNotEquals("", Files.readString(carpeta.resolve("clave.key")));
+    }
+
+    @Test
+    void borrarUnUsuarioBorraSusServiciosYCobrosPeroNoSusIngresos() throws Exception {
+        try (Database db = Database.enMemoria("cascada" + System.nanoTime())) {
+            try (Statement st = db.conexion().createStatement()) {
+                st.execute(USUARIO_DE_PRUEBA);
+                st.execute("INSERT INTO servicio_usuario (usuario_id, tipo, monto, recurrencia) "
+                        + "SELECT id, 'MEDICO', 100, 'MENSUAL' FROM usuario_atendido");
+                st.execute("INSERT INTO pendiente (usuario_id, categoria, fecha_limite, monto) "
+                        + "SELECT id, 'Pago mensual', DATE '2026-12-01', 500 FROM usuario_atendido");
+                st.execute("INSERT INTO movimiento (tipo, fecha, monto, concepto, categoria, usuario, forma_pago) "
+                        + "VALUES ('INGRESO', DATE '2026-11-24', 500, 'Pago', 'Pago mensual', 'Persona de prueba', "
+                        + "'EFECTIVO')");
+                st.execute("DELETE FROM usuario_atendido");
+                assertEquals(0, contar(st, "servicio_usuario"));
+                assertEquals(0, contar(st, "pendiente"));
+                assertEquals(1, contar(st, "movimiento"));
+            }
+        }
+    }
+
+    private static int contar(Statement st, String tabla) throws Exception {
+        try (ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM " + tabla)) {
+            rs.next();
+            return rs.getInt(1);
+        }
     }
 }
