@@ -104,7 +104,8 @@ public class RespaldoService {
         try {
             for (List<String> f : filas.subList(1, filas.size())) {
                 switch (f.get(0)) {
-                    case "USUARIO" -> users.add(new Object[] { Long.parseLong(f.get(1)), leerUsuario(f) });
+                    case "USUARIO" -> users.add(new Object[] { Long.parseLong(f.get(1)), leerUsuario(f),
+                            LocalDate.parse(f.get(14)) });
                     case "SERVICIO" -> agregarServicio(users, f);
                     case "EXPERIENCIA" -> fechasExperiencia.add(LocalDate.parse(f.get(1)));
                     case "CONFIG" -> config.put(f.get(1), f.get(2));
@@ -130,7 +131,9 @@ public class RespaldoService {
             bitacoraDao.borrarTodo();
             Map<Long, Long> idsUsuario = new HashMap<>();
             for (Object[] par : users) {
-                idsUsuario.put((Long) par[0], usuarios.insertar((UsuarioAtendido) par[1]));
+                long nuevoId = usuarios.insertar((UsuarioAtendido) par[1]);
+                usuarios.fijarCobrosDesde(nuevoId, (LocalDate) par[2]);
+                idsUsuario.put((Long) par[0], nuevoId);
             }
             Map<Long, Long> idsMovimiento = new HashMap<>();
             for (Object[] par : movs) {
@@ -168,7 +171,8 @@ public class RespaldoService {
                     u.frecuenciaEstancia() == null ? "" : u.frecuenciaEstancia().name(), texto(u.montoEstancia()),
                     u.fechaBase() == null ? "" : u.fechaBase().toString(),
                     u.diaMes() == null ? "" : String.valueOf(u.diaMes()), String.valueOf(u.experiencia()),
-                    texto(u.montoExperiencia()), texto(u.montoTiendita()))));
+                    texto(u.montoExperiencia()), texto(u.montoTiendita()),
+                    usuarios.cobrosDesde(u.id()).toString())));
             for (Servicio s : u.servicios()) {
                 csv.append(Csv.linea(List.of("SERVICIO", String.valueOf(u.id()), s.tipo().name(),
                         s.monto().toPlainString(), s.fechaInicio() == null ? "" : s.fechaInicio().toString(),

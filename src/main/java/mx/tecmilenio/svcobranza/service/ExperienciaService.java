@@ -20,12 +20,15 @@ public class ExperienciaService {
 
     private final Database db;
     private final ExperienciaDao fechas;
+    private final CobroService cobros;
     private final BitacoraService bitacora;
     private final Clock reloj;
 
-    public ExperienciaService(Database db, ExperienciaDao fechas, BitacoraService bitacora, Clock reloj) {
+    public ExperienciaService(Database db, ExperienciaDao fechas, CobroService cobros, BitacoraService bitacora,
+            Clock reloj) {
         this.db = db;
         this.fechas = fechas;
+        this.cobros = cobros;
         this.bitacora = bitacora;
         this.reloj = reloj;
     }
@@ -55,6 +58,7 @@ public class ExperienciaService {
             bitacora.registrar("EXPERIENCIA", "ALTA", null,
                     "Primera fecha del calendario: " + Formatos.fecha(primera));
             completar();
+            cobros.reemplazarExperiencia();
             return null;
         });
     }
@@ -88,6 +92,7 @@ public class ExperienciaService {
             bitacora.registrar("EXPERIENCIA", "EDICION", null,
                     "Fecha " + Formatos.fecha(actual) + " cambiada a " + Formatos.fecha(nueva));
             completar();
+            cobros.reemplazarExperiencia();
             return null;
         });
     }

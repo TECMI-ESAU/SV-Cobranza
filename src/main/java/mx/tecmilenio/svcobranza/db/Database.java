@@ -38,7 +38,8 @@ public final class Database implements AutoCloseable {
             + "dia_mes INT, "
             + "experiencia BOOLEAN DEFAULT FALSE NOT NULL, "
             + "monto_experiencia DECIMAL(12,2), "
-            + "monto_tiendita DECIMAL(12,2))",
+            + "monto_tiendita DECIMAL(12,2), "
+            + "cobros_desde DATE)",
         "CREATE TABLE IF NOT EXISTS servicio_usuario ("
             + "usuario_id BIGINT NOT NULL REFERENCES usuario_atendido(id) ON DELETE CASCADE, "
             + "tipo VARCHAR(10) NOT NULL, "
