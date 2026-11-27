@@ -17,6 +17,7 @@ import mx.tecmilenio.svcobranza.service.CobroService;
 import mx.tecmilenio.svcobranza.service.ExcelService;
 import mx.tecmilenio.svcobranza.service.ExperienciaService;
 import mx.tecmilenio.svcobranza.service.MovimientoService;
+import mx.tecmilenio.svcobranza.service.RecordatorioService;
 import mx.tecmilenio.svcobranza.service.RespaldoService;
 import mx.tecmilenio.svcobranza.service.UsuarioService;
 
@@ -27,6 +28,7 @@ public final class Aplicacion implements AutoCloseable {
     private final UsuarioService usuarios;
     private final ExperienciaService experiencia;
     private final CobroService cobros;
+    private final RecordatorioService recordatorios;
     private final MovimientoService movimientos;
     private final BalanceService balance;
     private final BitacoraService bitacora;
@@ -45,6 +47,7 @@ public final class Aplicacion implements AutoCloseable {
         this.movimientos = new MovimientoService(db, movimientoDao, new CategoriaDao(db), usuarioDao, bitacora);
         this.cobros = new CobroService(db, usuarioDao, pendienteDao, experienciaDao, configuracionDao, movimientos,
                 bitacora, reloj);
+        this.recordatorios = new RecordatorioService(usuarioDao, pendienteDao, configuracionDao, reloj);
         this.usuarios = new UsuarioService(db, usuarioDao, movimientoDao, pendienteDao, cobros, bitacora, reloj);
         this.experiencia = new ExperienciaService(db, experienciaDao, cobros, bitacora, reloj);
         this.balance = new BalanceService(movimientoDao, pendienteDao, reloj);
@@ -67,6 +70,10 @@ public final class Aplicacion implements AutoCloseable {
 
     public CobroService cobros() {
         return cobros;
+    }
+
+    public RecordatorioService recordatorios() {
+        return recordatorios;
     }
 
     public MovimientoService movimientos() {
