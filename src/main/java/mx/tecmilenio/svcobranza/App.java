@@ -16,6 +16,7 @@ public final class App {
         Path carpeta = Paths.get(System.getProperty("user.home"), "SV-Cobranza-datos");
         try (Aplicacion app = Aplicacion.enCarpeta(carpeta)) {
             app.experiencia().completar();
+            app.cobros().generarTodos();
             System.out.println("SV-Cobranza: base de datos lista en " + carpeta);
         } catch (AppException e) {
             System.err.println(e.getMessage());

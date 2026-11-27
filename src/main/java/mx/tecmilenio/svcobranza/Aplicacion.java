@@ -13,6 +13,7 @@ import mx.tecmilenio.svcobranza.db.PendienteDao;
 import mx.tecmilenio.svcobranza.db.UsuarioDao;
 import mx.tecmilenio.svcobranza.service.BalanceService;
 import mx.tecmilenio.svcobranza.service.BitacoraService;
+import mx.tecmilenio.svcobranza.service.CobroService;
 import mx.tecmilenio.svcobranza.service.ExcelService;
 import mx.tecmilenio.svcobranza.service.ExperienciaService;
 import mx.tecmilenio.svcobranza.service.MovimientoService;
@@ -25,6 +26,7 @@ public final class Aplicacion implements AutoCloseable {
     private final Database db;
     private final UsuarioService usuarios;
     private final ExperienciaService experiencia;
+    private final CobroService cobros;
     private final MovimientoService movimientos;
     private final BalanceService balance;
     private final BitacoraService bitacora;
@@ -40,9 +42,11 @@ public final class Aplicacion implements AutoCloseable {
         ExperienciaDao experienciaDao = new ExperienciaDao(db);
         ConfiguracionDao configuracionDao = new ConfiguracionDao(db);
         this.bitacora = new BitacoraService(bitacoraDao, reloj);
-        this.usuarios = new UsuarioService(db, usuarioDao, movimientoDao, pendienteDao, bitacora, reloj);
-        this.experiencia = new ExperienciaService(db, experienciaDao, bitacora, reloj);
         this.movimientos = new MovimientoService(db, movimientoDao, new CategoriaDao(db), usuarioDao, bitacora);
+        this.cobros = new CobroService(db, usuarioDao, pendienteDao, experienciaDao, configuracionDao, movimientos,
+                bitacora, reloj);
+        this.usuarios = new UsuarioService(db, usuarioDao, movimientoDao, pendienteDao, cobros, bitacora, reloj);
+        this.experiencia = new ExperienciaService(db, experienciaDao, cobros, bitacora, reloj);
         this.balance = new BalanceService(movimientoDao, pendienteDao, reloj);
         this.respaldo = new RespaldoService(db, usuarioDao, movimientoDao, pendienteDao, experienciaDao,
                 configuracionDao, bitacoraDao, bitacora);
@@ -59,6 +63,10 @@ public final class Aplicacion implements AutoCloseable {
 
     public ExperienciaService experiencia() {
         return experiencia;
+    }
+
+    public CobroService cobros() {
+        return cobros;
     }
 
     public MovimientoService movimientos() {

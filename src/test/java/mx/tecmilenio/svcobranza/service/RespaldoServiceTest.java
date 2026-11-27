@@ -249,6 +249,24 @@ class RespaldoServiceTest {
     }
 
     @Test
+    void restauraLaFechaDesdeLaQueRigeElEsquemaDeCobrosDeCadaUsuario(@TempDir Path carpeta) {
+        Path archivo = carpeta.resolve("respaldo.svb");
+        long carla = origen.usuarioDao.buscarPorNombre("Carla, \"Prueba\"").orElseThrow().id();
+        origen.usuarioDao.fijarCobrosDesde(carla, HOY.plusDays(6));
+        origen.respaldo.generar(archivo, CLAVE);
+
+        try (Equipo nuevo = new Equipo("nuevo")) {
+            nuevo.respaldo.restaurar(archivo, CLAVE);
+
+            long carlaNueva = nuevo.usuarioDao.buscarPorNombre("Carla, \"Prueba\"").orElseThrow().id();
+            long anaNueva = nuevo.usuarioDao.buscarPorNombre("Ana, Prueba").orElseThrow().id();
+            assertEquals(HOY.plusDays(6), nuevo.usuarioDao.cobrosDesde(carlaNueva));
+            // sin edición, rige desde la fecha de registro
+            assertEquals(HOY, nuevo.usuarioDao.cobrosDesde(anaNueva));
+        }
+    }
+
+    @Test
     void restauraLosCobrosConSuEstadoMotivoYVinculoConElMovimiento(@TempDir Path carpeta) {
         Path archivo = carpeta.resolve("respaldo.svb");
         origen.respaldo.generar(archivo, CLAVE);

@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +60,36 @@ public class UsuarioDao {
             guardarServicios(u.id(), u.servicios());
         } catch (SQLException e) {
             throw new AppException("No se pudo actualizar el usuario atendido", e);
+        }
+    }
+
+    /**
+     * Fecha desde la que rige el esquema de cobros vigente del usuario: la de su registro, o la
+     * de su ultima edicion. Los cobros anteriores se conservan pero ya no se recalculan.
+     */
+    public LocalDate cobrosDesde(long usuarioId) {
+        try (PreparedStatement ps = db.conexion().prepareStatement(
+                "SELECT COALESCE(cobros_desde, fecha_registro) FROM usuario_atendido WHERE id = ?")) {
+            ps.setLong(1, usuarioId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new AppException("El usuario ya no existe.");
+                }
+                return rs.getDate(1).toLocalDate();
+            }
+        } catch (SQLException e) {
+            throw new AppException("No se pudo leer la fecha de inicio de cobros", e);
+        }
+    }
+
+    public void fijarCobrosDesde(long usuarioId, LocalDate fecha) {
+        try (PreparedStatement ps = db.conexion()
+                .prepareStatement("UPDATE usuario_atendido SET cobros_desde = ? WHERE id = ?")) {
+            ps.setDate(1, java.sql.Date.valueOf(fecha));
+            ps.setLong(2, usuarioId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException("No se pudo guardar la fecha de inicio de cobros", e);
         }
     }
 

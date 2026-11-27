@@ -16,8 +16,13 @@ import org.junit.jupiter.api.Test;
 
 import mx.tecmilenio.svcobranza.AppException;
 import mx.tecmilenio.svcobranza.db.BitacoraDao;
+import mx.tecmilenio.svcobranza.db.CategoriaDao;
+import mx.tecmilenio.svcobranza.db.ConfiguracionDao;
 import mx.tecmilenio.svcobranza.db.Database;
 import mx.tecmilenio.svcobranza.db.ExperienciaDao;
+import mx.tecmilenio.svcobranza.db.MovimientoDao;
+import mx.tecmilenio.svcobranza.db.PendienteDao;
+import mx.tecmilenio.svcobranza.db.UsuarioDao;
 
 class ExperienciaServiceTest {
 
@@ -34,7 +39,15 @@ class ExperienciaServiceTest {
         db = Database.enMemoria("experiencia" + System.nanoTime());
         dao = new ExperienciaDao(db);
         bitacora = new BitacoraService(new BitacoraDao(db), reloj(HOY));
-        servicio = new ExperienciaService(db, dao, bitacora, reloj(HOY));
+        servicio = servicioConReloj(reloj(HOY));
+    }
+
+    private ExperienciaService servicioConReloj(Clock reloj) {
+        MovimientoService movimientos = new MovimientoService(db, new MovimientoDao(db), new CategoriaDao(db),
+                new UsuarioDao(db), bitacora);
+        CobroService cobros = new CobroService(db, new UsuarioDao(db), new PendienteDao(db), dao,
+                new ConfiguracionDao(db), movimientos, bitacora, reloj);
+        return new ExperienciaService(db, dao, cobros, bitacora, reloj);
     }
 
     @AfterEach
@@ -157,7 +170,7 @@ class ExperienciaServiceTest {
         LocalDate primera = HOY.plusDays(3);
         servicio.definirPrimeraFecha(primera);
         LocalDate dentroDeCienDias = HOY.plusDays(100);
-        ExperienciaService futuro = new ExperienciaService(db, dao, bitacora, reloj(dentroDeCienDias));
+        ExperienciaService futuro = servicioConReloj(reloj(dentroDeCienDias));
 
         futuro.completar();
 

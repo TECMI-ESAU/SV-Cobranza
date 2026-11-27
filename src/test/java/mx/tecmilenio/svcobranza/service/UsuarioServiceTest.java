@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test;
 import mx.tecmilenio.svcobranza.AppException;
 import mx.tecmilenio.svcobranza.db.BitacoraDao;
 import mx.tecmilenio.svcobranza.db.CategoriaDao;
+import mx.tecmilenio.svcobranza.db.ConfiguracionDao;
 import mx.tecmilenio.svcobranza.db.Database;
+import mx.tecmilenio.svcobranza.db.ExperienciaDao;
 import mx.tecmilenio.svcobranza.db.MovimientoDao;
 import mx.tecmilenio.svcobranza.db.PendienteDao;
 import mx.tecmilenio.svcobranza.db.UsuarioDao;
@@ -53,8 +55,10 @@ class UsuarioServiceTest {
         UsuarioDao usuarioDao = new UsuarioDao(db);
         MovimientoDao movimientoDao = new MovimientoDao(db);
         pendienteDao = new PendienteDao(db);
-        servicio = new UsuarioService(db, usuarioDao, movimientoDao, pendienteDao, bitacora, reloj);
         movimientos = new MovimientoService(db, movimientoDao, new CategoriaDao(db), usuarioDao, bitacora);
+        CobroService cobros = new CobroService(db, usuarioDao, pendienteDao, new ExperienciaDao(db),
+                new ConfiguracionDao(db), movimientos, bitacora, reloj);
+        servicio = new UsuarioService(db, usuarioDao, movimientoDao, pendienteDao, cobros, bitacora, reloj);
     }
 
     @AfterEach
@@ -210,6 +214,27 @@ class UsuarioServiceTest {
     }
 
     @Test
+    void noSeRegistranUsuariosConFechaDeIngresoFutura() {
+        UsuarioAtendido u = mensual("Ana Prueba");
+        assertRechaza(new UsuarioAtendido(0, u.nombre(), HOY.plusDays(1), HOY, null, false, Frecuencia.MENSUAL,
+                u.montoEstancia(), null, 1, false, null, null, List.of()), "posterior a hoy");
+        // hoy sí es válido
+        assertTrue(servicio.registrar(semanal("Beto Prueba")).id() > 0);
+    }
+
+    @Test
+    void editarTampocoPermiteUnaFechaDeIngresoFutura() {
+        UsuarioAtendido guardado = servicio.registrar(mensual("Ana Prueba"));
+        UsuarioAtendido cambios = new UsuarioAtendido(guardado.id(), "Ana Prueba", HOY.plusDays(3), HOY, null, false,
+                Frecuencia.MENSUAL, new BigDecimal("3500"), null, 15, false, null, null, List.of());
+
+        AppException e = assertThrows(AppException.class, () -> servicio.editar(cambios));
+
+        assertTrue(e.getMessage().contains("posterior a hoy"));
+        assertEquals(HOY.minusDays(10), servicio.buscarPorId(guardado.id()).orElseThrow().fechaIngreso());
+    }
+
+    @Test
     void exigeFrecuenciaDeEstanciaSiNoEsBecado() {
         assertRechaza(new UsuarioAtendido(0, "Ana Prueba", HOY, HOY, null, false, null, new BigDecimal("100"), null,
                 null, false, null, null, List.of()), "semanal o mensual");
@@ -342,11 +367,11 @@ class UsuarioServiceTest {
 
     @Test
     void borrarEliminaAlUsuarioYSusCobrosPendientesPeroConservaSusIngresos() {
+        // Al registrarla se genera sola su cobro mensual del 15/12 (Pendiente)
         UsuarioAtendido guardado = servicio.registrar(mensual("Ana Prueba"));
         Movimiento pago = movimientos.registrar(new Movimiento(0, TipoMovimiento.INGRESO, HOY, new BigDecimal("3500"),
                 "Pago mensual", "Pago mensual", "Ana Prueba", FormaPago.EFECTIVO, false), false);
-        pendienteDao.insertar(new Pendiente(0, guardado.id(), "Ana Prueba", "Pago mensual", HOY.plusDays(5),
-                new BigDecimal("3500"), EstadoPendiente.PENDIENTE, null, null));
+        assertEquals(1, pendienteDao.porUsuario(guardado.id()).size());
         pendienteDao.insertar(new Pendiente(0, guardado.id(), "Ana Prueba", "Pago mensual", HOY,
                 new BigDecimal("3500"), EstadoPendiente.PAGADO, null, pago.id()));
 
@@ -391,8 +416,9 @@ class UsuarioServiceTest {
 
     @Test
     void cobrosDeDevuelveTodosLosEstadosDelUsuario() {
-        UsuarioAtendido ana = servicio.registrar(mensual("Ana Prueba"));
-        UsuarioAtendido beto = servicio.registrar(mensual("Beto Prueba"));
+        // Los becados no generan cobros solos, así que solo cuentan los que se insertan aquí
+        UsuarioAtendido ana = servicio.registrar(becado("Ana Prueba"));
+        UsuarioAtendido beto = servicio.registrar(becado("Beto Prueba"));
         pendienteDao.insertar(new Pendiente(0, ana.id(), "Ana Prueba", "Pago mensual", HOY,
                 new BigDecimal("3500"), EstadoPendiente.PENDIENTE, null, null));
         pendienteDao.insertar(new Pendiente(0, ana.id(), "Ana Prueba", "Médico", HOY,

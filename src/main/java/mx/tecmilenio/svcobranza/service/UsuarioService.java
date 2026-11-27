@@ -33,28 +33,31 @@ public class UsuarioService {
     private final UsuarioDao usuarios;
     private final MovimientoDao movimientos;
     private final PendienteDao pendientes;
+    private final CobroService cobros;
     private final BitacoraService bitacora;
     private final Clock reloj;
 
     public UsuarioService(Database db, UsuarioDao usuarios, MovimientoDao movimientos, PendienteDao pendientes,
-            BitacoraService bitacora, Clock reloj) {
+            CobroService cobros, BitacoraService bitacora, Clock reloj) {
         this.db = db;
         this.usuarios = usuarios;
         this.movimientos = movimientos;
         this.pendientes = pendientes;
+        this.cobros = cobros;
         this.bitacora = bitacora;
         this.reloj = reloj;
     }
 
-    /** Da de alta al usuario; la fecha de registro es la de hoy. */
+    /** Da de alta al usuario; la fecha de registro es la de hoy. Genera sus cobros de los proximos 30 dias. */
     public UsuarioAtendido registrar(UsuarioAtendido nuevo) {
         UsuarioAtendido u = normalizar(nuevo).conId(0).conFechaRegistro(LocalDate.now(reloj));
-        validar(u);
+        validar(u, LocalDate.now(reloj));
         verificarNombreLibre(u.nombre(), 0);
         return db.transaccion(() -> {
             long id = usuarios.insertar(u);
             UsuarioAtendido guardado = u.conId(id);
             bitacora.registrar("USUARIO", "ALTA", null, descripcion(guardado));
+            cobros.generarPara(guardado);
             return guardado;
         });
     }
@@ -67,7 +70,7 @@ public class UsuarioService {
         UsuarioAtendido anterior = usuarios.buscarPorId(cambios.id())
                 .orElseThrow(() -> new AppException("El usuario ya no existe."));
         UsuarioAtendido u = normalizar(cambios).conFechaRegistro(anterior.fechaRegistro());
-        validar(u);
+        validar(u, LocalDate.now(reloj));
         verificarNombreLibre(u.nombre(), u.id());
         return db.transaccion(() -> {
             usuarios.actualizar(u);
@@ -76,6 +79,7 @@ public class UsuarioService {
             }
             bitacora.registrar("USUARIO", "EDICION", null,
                     "Antes: " + descripcion(anterior) + " | Ahora: " + descripcion(u));
+            cobros.reemplazarAlEditar(u);
             return u;
         });
     }
@@ -149,13 +153,15 @@ public class UsuarioService {
                 servicios);
     }
 
-    private static void validar(UsuarioAtendido u) {
+    private static void validar(UsuarioAtendido u, LocalDate hoy) {
         List<String> errores = new ArrayList<>();
         if (u.nombre() == null || u.nombre().isEmpty()) {
             errores.add("Falta el nombre del usuario.");
         }
         if (u.fechaIngreso() == null) {
             errores.add("Falta la fecha de ingreso.");
+        } else if (u.fechaIngreso().isAfter(hoy)) {
+            errores.add("La fecha de ingreso no puede ser posterior a hoy.");
         }
         if (u.montoTiendita() != null && u.montoTiendita().signum() < 0) {
             errores.add("El monto de tiendita no puede ser negativo.");
@@ -182,7 +188,7 @@ public class UsuarioService {
         if (u.frecuenciaEstancia() == Frecuencia.SEMANAL && u.fechaBase() == null) {
             errores.add("Falta la fecha desde la que se cuenta el cobro semanal.");
         }
-        if (u.frecuenciaEstancia() == Frecuencia.MENSUAL && (u.diaMes() < 1 || u.diaMes() > 31)) {
+        if (u.frecuenciaEstancia() == Frecuencia.MENSUAL && (u.diaMes() == null || u.diaMes() < 1 || u.diaMes() > 31)) {
             errores.add("El día del mes debe estar entre 1 y 31.");
         }
     }

@@ -88,6 +88,33 @@ public class PendienteDao {
         }
     }
 
+    /**
+     * Borra los cobros en estado Pendiente de un usuario con fecha igual o posterior a la dada.
+     * Los vencidos (fecha anterior), pagados y condonados se conservan.
+     */
+    public void borrarPendientesDesde(long usuarioId, LocalDate fecha) {
+        try (PreparedStatement ps = db.conexion().prepareStatement(
+                "DELETE FROM pendiente WHERE usuario_id = ? AND estado = 'PENDIENTE' AND fecha_limite >= ?")) {
+            ps.setLong(1, usuarioId);
+            ps.setDate(2, java.sql.Date.valueOf(fecha));
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException("No se pudieron reemplazar los cobros pendientes", e);
+        }
+    }
+
+    /** Borra, de todos los usuarios, los cobros Pendiente de una categoria con fecha igual o posterior. */
+    public void borrarPendientesDeCategoriaDesde(String categoria, LocalDate fecha) {
+        try (PreparedStatement ps = db.conexion().prepareStatement("DELETE FROM pendiente WHERE categoria = ? "
+                + "AND estado = 'PENDIENTE' AND fecha_limite >= ?")) {
+            ps.setString(1, categoria);
+            ps.setDate(2, java.sql.Date.valueOf(fecha));
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new AppException("No se pudieron reemplazar los cobros pendientes", e);
+        }
+    }
+
     public void borrarTodo() {
         try (Statement st = db.conexion().createStatement()) {
             st.execute("DELETE FROM pendiente");
