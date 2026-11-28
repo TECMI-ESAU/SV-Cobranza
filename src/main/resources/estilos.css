@@ -1,0 +1,115 @@
+/* Paleta tomada del logo de Soplando Vida: verde, morado y dorado.
+   El azul y el rojo solo se usan para lo funcional (cobros semanales y vencidos). */
+.root {
+    -sv-verde: #4E602A;
+    -sv-morado: #9060A0;
+    -sv-morado-claro: #C7A6DA;
+    -sv-dorado: #B3904C;
+    -sv-azul: #2F6DB5;
+    -sv-rojo: #B3261E;
+    -sv-fondo: #FAF8F3;
+
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 14px;
+    -fx-base: #F1EEE6;
+    -fx-background: -sv-fondo;
+    -fx-accent: -sv-verde;
+    -fx-focus-color: -sv-morado;
+    -fx-faint-focus-color: transparent;
+}
+
+.encabezado {
+    -fx-background-color: -sv-verde;
+    -fx-border-color: -sv-dorado;
+    -fx-border-width: 0 0 3 0;
+}
+
+.encabezado-titulo {
+    -fx-text-fill: white;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+}
+
+.encabezado-subtitulo {
+    -fx-text-fill: -sv-morado-claro;
+    -fx-font-size: 14px;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #E7E1D2;
+    -fx-padding: 6 16 6 16;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: -sv-fondo;
+    -fx-border-color: -sv-dorado;
+    -fx-border-width: 3 0 0 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-text-fill: #3C3C3C;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
+    -fx-text-fill: -sv-verde;
+    -fx-font-weight: bold;
+}
+
+.button {
+    -fx-background-color: -sv-verde;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-padding: 6 16 6 16;
+}
+
+.button:hover {
+    -fx-background-color: derive(-sv-verde, 15%);
+}
+
+.button:disabled {
+    -fx-opacity: 0.5;
+}
+
+.button.secundario {
+    -fx-background-color: -sv-morado;
+}
+
+.button.secundario:hover {
+    -fx-background-color: derive(-sv-morado, 15%);
+}
+
+.button.peligro {
+    -fx-background-color: -sv-rojo;
+}
+
+.titulo-seccion {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -sv-verde;
+}
+
+.table-view .column-header {
+    -fx-background-color: -sv-verde;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.titled-pane > .title {
+    -fx-background-color: -sv-morado-claro;
+}
+
+.marcador {
+    -fx-text-fill: -sv-morado;
+    -fx-font-size: 20px;
+}
+
+/* Colores de los recordatorios y los cobros */
+.aviso-experiencia { -fx-background-color: #F2E6CC; -fx-border-color: -sv-dorado; }
+.aviso-medico { -fx-background-color: #E4D3EA; -fx-border-color: -sv-morado; }
+.aviso-psicologo { -fx-background-color: #F1E8F6; -fx-border-color: -sv-morado-claro; }
+.aviso-mensual { -fx-background-color: #E1E9D3; -fx-border-color: -sv-verde; }
+.aviso-semanal { -fx-background-color: #D9E6F5; -fx-border-color: -sv-azul; }
+.aviso-vencido { -fx-background-color: #F6D9D6; -fx-border-color: -sv-rojo; }

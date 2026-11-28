@@ -20,3 +20,6 @@ Thumbs.db
 clave.key
 *.key
 dist/
+
+# Logo de la organizacion: no se publica; la app funciona sin el
+src/main/resources/logo.jpg
