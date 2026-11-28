@@ -31,6 +31,11 @@ public final class VentanaPrincipal {
         this.contexto = new Contexto(aplicacion);
     }
 
+    /** Contexto compartido por las pestañas; App lo usa para abrir el aviso del dia. */
+    public Contexto contexto() {
+        return contexto;
+    }
+
     public Aplicacion aplicacion() {
         return aplicacion;
     }
@@ -77,6 +82,12 @@ public final class VentanaPrincipal {
             return new PestanaNuevoUsuario(contexto).nodo();
         case "Usuarios":
             return new PestanaUsuarios(contexto).nodo();
+        case "Ingresos":
+            return new PestanaMovimientos(contexto, mx.tecmilenio.svcobranza.model.TipoMovimiento.INGRESO).nodo();
+        case "Egresos":
+            return new PestanaMovimientos(contexto, mx.tecmilenio.svcobranza.model.TipoMovimiento.EGRESO).nodo();
+        case "Cobros pendientes":
+            return new PestanaCobros(contexto).nodo();
         default:
             return marcador(nombre);
         }
