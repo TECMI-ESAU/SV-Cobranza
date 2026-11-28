@@ -14,10 +14,17 @@
     <properties>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <app.mainClass>mx.tecmilenio.svcobranza.App</app.mainClass>
+        <javafx.version>21.0.12</javafx.version>
+        <!-- No extiende Application: asi el jar con todo incluido arranca JavaFX desde el classpath -->
+        <app.mainClass>mx.tecmilenio.svcobranza.Lanzador</app.mainClass>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
