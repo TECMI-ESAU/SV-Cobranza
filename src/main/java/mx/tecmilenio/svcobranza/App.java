@@ -10,6 +10,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 import mx.tecmilenio.svcobranza.ui.Tema;
+import mx.tecmilenio.svcobranza.ui.VentanaAviso;
 import mx.tecmilenio.svcobranza.ui.VentanaPrincipal;
 
 /**
@@ -33,7 +34,8 @@ public class App extends Application {
             javafx.application.Platform.exit();
             return;
         }
-        Scene escena = new Scene(new VentanaPrincipal(aplicacion).contenido(), 1100, 720);
+        VentanaPrincipal ventana = new VentanaPrincipal(aplicacion);
+        Scene escena = new Scene(ventana.contenido(), 1100, 720);
         Tema.aplicar(escena);
         escenario.setTitle("SV-Cobranza - Soplando Vida A.C.");
         Tema.logo().ifPresent(imagen -> escenario.getIcons().add(imagen));
@@ -41,6 +43,7 @@ public class App extends Application {
         escenario.setMinWidth(900);
         escenario.setMinHeight(600);
         escenario.show();
+        VentanaAviso.alAbrir(ventana.contexto());
     }
 
     @Override
