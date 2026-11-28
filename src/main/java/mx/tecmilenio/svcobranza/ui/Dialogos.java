@@ -8,6 +8,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -74,6 +75,22 @@ public final class Dialogos {
             return Optional.empty();
         }
         return Optional.of(campo.getText() == null ? "" : campo.getText());
+    }
+
+    /** Pide una contraseña oculta. Vacio solo si se cancela; el llamador debe borrar el arreglo al terminar. */
+    public static Optional<char[]> contrasena(String mensaje) {
+        PasswordField campo = new PasswordField();
+        Label etiqueta = new Label(mensaje);
+        etiqueta.setWrapText(true);
+        etiqueta.setMaxWidth(380);
+        ButtonType aceptar = new ButtonType("Aceptar", ButtonBar.ButtonData.OK_DONE);
+        Alert alerta = crear(Alert.AlertType.NONE, "", aceptar, CANCELAR);
+        alerta.getDialogPane().setContent(new VBox(10, etiqueta, campo));
+        Optional<ButtonType> respuesta = alerta.showAndWait();
+        if (respuesta.isEmpty() || respuesta.get() != aceptar) {
+            return Optional.empty();
+        }
+        return Optional.of(campo.getText().toCharArray());
     }
 
     /** Crea un cuadro con el tema aplicado; lo usan las ventanas propias (pago, aviso del dia). */

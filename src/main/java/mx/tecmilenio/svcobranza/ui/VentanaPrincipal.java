@@ -15,7 +15,7 @@ import mx.tecmilenio.svcobranza.Aplicacion;
 
 /**
  * Ventana principal: encabezado con el logo (si existe) y las ocho pestañas, en el orden
- * acordado con el cliente. Las pestañas que aun no se implementan muestran un marcador.
+ * acordado con el cliente. Las ocho pestañas estan implementadas; el marcador solo queda por si falta una.
  */
 public final class VentanaPrincipal {
 
@@ -88,6 +88,12 @@ public final class VentanaPrincipal {
             return new PestanaMovimientos(contexto, mx.tecmilenio.svcobranza.model.TipoMovimiento.EGRESO).nodo();
         case "Cobros pendientes":
             return new PestanaCobros(contexto).nodo();
+        case "Balance":
+            return new PestanaBalance(contexto).nodo();
+        case "Respaldo":
+            return new PestanaRespaldo(contexto).nodo();
+        case "Bitácora":
+            return new PestanaBitacora(contexto).nodo();
         default:
             return marcador(nombre);
         }
