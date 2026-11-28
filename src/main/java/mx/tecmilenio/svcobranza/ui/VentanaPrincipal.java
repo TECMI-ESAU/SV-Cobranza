@@ -15,7 +15,7 @@ import mx.tecmilenio.svcobranza.Aplicacion;
 
 /**
  * Ventana principal: encabezado con el logo (si existe) y las ocho pestañas, en el orden
- * acordado con el cliente. El contenido de cada pestaña llega en las siguientes ramas.
+ * acordado con el cliente. Las pestañas que aun no se implementan muestran un marcador.
  */
 public final class VentanaPrincipal {
 
@@ -24,9 +24,11 @@ public final class VentanaPrincipal {
         "Cobros pendientes", "Balance", "Respaldo", "Bitácora" };
 
     private final Aplicacion aplicacion;
+    private final Contexto contexto;
 
     public VentanaPrincipal(Aplicacion aplicacion) {
         this.aplicacion = aplicacion;
+        this.contexto = new Contexto(aplicacion);
     }
 
     public Aplicacion aplicacion() {
@@ -64,10 +66,20 @@ public final class VentanaPrincipal {
         TabPane panel = new TabPane();
         panel.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         for (String nombre : PESTANAS) {
-            Tab pestana = new Tab(nombre, marcador(nombre));
-            panel.getTabs().add(pestana);
+            panel.getTabs().add(new Tab(nombre, contenidoDe(nombre)));
         }
         return panel;
+    }
+
+    private Node contenidoDe(String nombre) {
+        switch (nombre) {
+        case "Nuevo Usuario":
+            return new PestanaNuevoUsuario(contexto).nodo();
+        case "Usuarios":
+            return new PestanaUsuarios(contexto).nodo();
+        default:
+            return marcador(nombre);
+        }
     }
 
     private static Node marcador(String nombre) {

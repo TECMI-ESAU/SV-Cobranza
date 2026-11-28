@@ -2,6 +2,7 @@ package mx.tecmilenio.svcobranza.ui;
 
 import java.time.LocalDate;
 
+import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.util.StringConverter;
 
@@ -42,5 +43,23 @@ public final class Fechas {
         selector.setPromptText("dd/mm/aaaa");
         selector.setEditable(true);
         return selector;
+    }
+
+    /** Selector que no deja elegir fechas posteriores a hoy (no hay usuarios por adelantado). */
+    public static DatePicker selectorHastaHoy(LocalDate inicial) {
+        DatePicker selector = selector(inicial);
+        selector.setDayCellFactory(p -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate fecha, boolean vacia) {
+                super.updateItem(fecha, vacia);
+                setDisable(!vacia && fecha.isAfter(LocalDate.now()));
+            }
+        });
+        return selector;
+    }
+
+    /** Texto que esta escrito en el selector, aunque aun no se haya confirmado con Enter. */
+    public static String texto(DatePicker selector) {
+        return selector.getEditor().getText();
     }
 }

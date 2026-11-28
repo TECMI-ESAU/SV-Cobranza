@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.Optional;
 
 import javafx.scene.Scene;
+import javafx.scene.control.DialogPane;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
@@ -29,6 +30,11 @@ public final class Tema {
     /** Aplica la hoja de estilos de la aplicacion a la escena. */
     public static void aplicar(Scene escena) {
         escena.getStylesheets().add(Tema.class.getResource(HOJA).toExternalForm());
+    }
+
+    /** Aplica la hoja de estilos a un cuadro de dialogo (que tiene su propia escena). */
+    public static void aplicar(DialogPane dialogo) {
+        dialogo.getStylesheets().add(Tema.class.getResource(HOJA).toExternalForm());
     }
 
     /**
