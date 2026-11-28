@@ -113,3 +113,7 @@
 .aviso-mensual { -fx-background-color: #E1E9D3; -fx-border-color: -sv-verde; }
 .aviso-semanal { -fx-background-color: #D9E6F5; -fx-border-color: -sv-azul; }
 .aviso-vencido { -fx-background-color: #F6D9D6; -fx-border-color: -sv-rojo; }
+
+/* Notas y avisos dentro de los formularios */
+.nota { -fx-text-fill: #57606a; -fx-font-style: italic; }
+.panel-aviso { -fx-padding: 8 12 8 12; -fx-border-width: 1; -fx-background-radius: 4; -fx-border-radius: 4; }
